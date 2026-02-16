@@ -73,8 +73,8 @@ def spec2_matrix(TOTC,K1,K2,KW):
     # CO3-2  |  -1   |  2
     #   OH-  |   0   |  1
      S = np.array([
-          [-1 , 1] # HCO3^-
-          [-1 , 2] # CO3^2-
+          [-1 , 1], # HCO3^-
+          [-1 , 2], # CO3^2-
           [0 , 1]  # OH^-
      ])
      K = np.array([K1,K1*K2,KW])
