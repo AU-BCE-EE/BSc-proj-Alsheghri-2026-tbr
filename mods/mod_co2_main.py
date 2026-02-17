@@ -51,10 +51,10 @@ def rates(t, n,
   # Number of cells (layers) (note integer division)
   nc = (len(n)-2)//3                                                   # double check this
   # Separate gas, liquid and reservoir state variables (mol) (mol/m2)
-  ncg     = n[0:nc]                             # CO2 in the gas phase
-  n_co2   = n[nc:(2 * nc)]                      # CO2 in the liquid phase
-  n_TOTC = n[(2*nc):(3*nc)]                     # TOTC in the liquid phase
-  ncr     = n[(3*nc) : (3*nc)+2]                # reservoir
+  ncg     = n[0:nc]                              # CO2 in the gas phase
+  n_co2   = n[nc:(2 * nc)]                       # CO2 in the liquid phase
+  n_TOTC  = n[(2*nc):(3*nc)]                     # TOTC in the liquid phase
+  ncr     = n[(3*nc) : (3*nc)+2]                 # reservoir
 
   # the reservoir now should handle 2 species 
   # CO2 
@@ -232,7 +232,7 @@ def rates(t, n,
 # Model function
 # TBR
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, 
-          clin_co2,clin_TOTC, cr_co20,cr_TOTC0, k1, K1, k3, K4, Kga, henry, pKa,temp, dens_l, 
+          clin_co2,clin_TOTC, cr_co20,cr_TOTC0, k1, K1, k3, Kga, henry, pKa,temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
           pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False):
 
@@ -249,20 +249,19 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    # -------------------------initial concentrations --------------------------
    # cg0       = initial compound concentration in gas phase (g/m3 = g(compound)/m3(g))
    # cl_co20   = initial CO2 concentration in liquid phase (g/m3)
-   # cl_TOTC0  = initial TOTC concetraion in the liquid phase(g/m3) Maybe mol/m3 so we do not get trouble in the unit conversion?? if changed here, change for all TOTC
+   # cl_TOTC0  = initial TOTC concetraion in the liquid phase(mol/m3) 
    # -------------------------- inflow concentrations --------------------
    # cgin      = CO2 concentration in gas inflow (g/m3(g))
    # clin_co2  = CO2 concentration in liquid inflow (g/m3(l)) (ignored if recirc = True)
-   # clin_TOTC = TOTC concentration in liquid inflow (g/m3(l)) (ignored if recirc = True)
+   # clin_TOTC = TOTC concentration in liquid inflow (mol/m3(l)) (ignored if recirc = True)
    # --------------------- Reservoir Initial Concentrations ----------------
    # cr_co20   = initial CO2 concentration in reservoir (g/m3)
-   # cr_TOTC0  = initial TOTC concentration in reservoir (g/m3)
+   # cr_TOTC0  = initial TOTC concentration in reservoir (mol/m3)
    # -------------------- physical parameters ----------------------
    # Kga       = mass transfer coefficient for gas to liquid in gas phase units (1/s = g/s-m3(t) / g/m3(g))
    # k1        = first-order rate constant for CO2 + H2O -> H2CO3 (s^-1)
    # k3        = second-order rate constant for CO2 + OH^- -> HCO3^- (m3/mol-s)
    # K1        = equilibrium constant for CO2 + H2O -> H2CO3 (dimensionless)
-   # K4        = equilibrium constant for CO2 + OH^- -> HCO3^- (dimensionless)
    # henry     = Henry's law constant coefficients as [k_H at 25 C, d(ln(kH)) / d(1/T)] as in NIST Chemistry Web Book
    # temp      = temperature (degrees C)
    # dens_l    = solution (liquid) density (kg/m3)
@@ -293,7 +292,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    k1       = float(k1)
    k3       = float(k3)
    K1       = float(K1)
-   K4       = float(K4)
    pKa      = float(pKa)
    temp     = float(temp)
    dens_l   = float(dens_l)
@@ -306,7 +304,14 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    kh   = kh * dens_l / 1000                                    # mol/L-bar
    Kaw  = 1 / (kh * R * TK)                                     # dimensionless, gas:liq, e.g., g/L / g/L or g/m3 per g/m3
    
-   
+   # Temperature dependent constants
+   Kw = 10**(-4.2195 - 2915.16/TK) # KW = 10^-pKw
+   rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)
+   K2 = math.exp(-12092.1/TK -36.786 * math.log(TK) + 235.482) * rho_water  # equlibrium constant for CO2 + H2O -> HCO3^- + H^+
+   K4 = K2/Kw                                                               # equilibrium constant for CO2 + OH^- -> HCO3^- (dimensionless)
+   K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
+   K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
+
    
    # Create cells
    # we create nc equally spaced cells over the lenght L
@@ -324,18 +329,14 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    # convert the users input from g/m3 to mol/m3 so it fits the units of the model
    cg0      = gpm3_to_molpm3(cg0, M_co2)
    cgin     = gpm3_to_molpm3(cgin, M_co2)
-
    cl_co20  = gpm3_to_molpm3(cl_co20,  M_co2)
-   cl_TOTC0 = gpm3_to_molpm3(cl_TOTC0, M_hco3)      # If we inforce that it should be in mol/m3 we do not get trouble in the unit conversion, because now what is M_TOTC??
-                                                    # For TOTC the unit problem actually does not matter, because the initial and boundary conditions would just be 0, so it does not affect anythin or am i just stupid?
-                                                    # For now forget about it untill meeting with Sasha.
    clin_co2  = gpm3_to_molpm3(clin_co2,  M_co2)
-   clin_TOTC = gpm3_to_molpm3(clin_TOTC, M_hco3)    # The same here?
+
 
 
    cr = np.array([
         gpm3_to_molpm3(cr_co20,  M_co2),
-        gpm3_to_molpm3(cr_TOTC0, M_hco3),           # The same here?
+        cr_TOTC0,
     ]) * v_res  # mol
 
    # Uniform initial concentrations throughout reactor
@@ -388,7 +389,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    # Return results as a dictionary
    return {'gas_conc'    : molpm3_to_gpm3(ccgt,M_co2),
           'co2_liq_conc' : molpm3_to_gpm3(ccl_co2t,M_co2),
-          'TOTC_liq_conc': molpm3_to_gpm3(ccl_TOTCt,M_hco3),   # The same here, but here we do not need TOTC as an output or what??
+          'TOTC_liq_conc': ccl_TOTCt,
           'cell_pos'     : x,
           'time'         : times,
           'inputs'       : args_in, 
