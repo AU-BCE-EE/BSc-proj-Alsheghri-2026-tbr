@@ -175,12 +175,13 @@ def spec2_matrix(TOTC,K_hco3,K_co3,KW):
     # HCO3-  |  -1   |  1
     # CO3-2  |  -1   |  2
     #   OH-  |   0   |  1
+     TOTC = TOTC/1000
      S = np.array([
           [-1 , 1], # HCO3^-
           [-1 , 2], # CO3^2-
           [0 , 1]  # OH^-
      ])
-     K = np.array([K_hco3,K_hco3*K_co3,KW])
+     K = np.array([K_hco3,K_co3,KW])
      def residH(c_h):
           # denominator for c_h2co3 equation --> denom = 1 + K1/c_h + K1*K2/c_h**2  
           denom = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0])) # if we did not have the last part
@@ -196,11 +197,11 @@ def spec2_matrix(TOTC,K_hco3,K_co3,KW):
      conc    = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1]))
      pH = - np.log10(c_h)
      out = {
-        'c_h2co3': c_h2co3,
-        'c_hco3' : conc[0],
-        'c_co3'  : conc[1],
-        'c_oh'   : conc[2],
-        'c_h'    : c_h,
+        'c_h2co3': c_h2co3 * 1000,
+        'c_hco3' : conc[0] * 1000,
+        'c_co3'  : conc[1] * 1000,
+        'c_oh'   : conc[2] * 1000,
+        'c_h'    : c_h     * 1000,
         'pH'     : pH 
     }
      return out
