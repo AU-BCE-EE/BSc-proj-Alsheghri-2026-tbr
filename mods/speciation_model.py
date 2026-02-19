@@ -149,7 +149,7 @@ def spec2_matrix(TOTC,K_hco3,K_co3,KW):
             Equilibrium constant for H2CO3 ⇌ HCO3^- + H^+
 
     K_co3 : float
-            Equilibrium constant for HCO3^- ⇌ CO3 ^2-  + H^+
+            Equilibrium constant for H2CO3 ⇌ CO3^2-  + 2H^+
 
     KW    : float
             Water dissociation constant 
