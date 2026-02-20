@@ -133,7 +133,7 @@ def spec2(TOTC,K_hco3,K_co3,KW):
 # the same as spec2 but here with matrix apporach. When we are 100% sure it works we could just
 # remove the two above or have a module with matrix approach only.  
 
-def spec2_matrix(TOTC, K_hco3, K_co3, KW):
+def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     """
     Calculate carbonate system speciation and pH from total carbonate
     concentration. This version excludes CO2 (aq), which is assumed
@@ -156,6 +156,8 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW):
     KW    : float
             Water dissociation constant 
 
+    c_oh  : concentration of excess OH- (mol/m3)
+
     Returns
     ----------
     Dictionary
@@ -174,6 +176,7 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW):
 
     # Convert mol/m3 to mol/L
     TOTC = TOTC/1000
+    ex_oh = ex_oh/1000
 
     # define the stoichiometry matrix
     #        | H2CO3 |  H+
@@ -196,7 +199,7 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW):
         # then we would also say that denom depends on OH, it does not.
         c_h2co3 = TOTC / denom
         conc = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
-        return c_h - np.sum(conc * S[:,1])
+        return c_h - np.sum(conc * S[:,1]) + ex_oh
 
     # find the concentration of H+
     c_h = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
