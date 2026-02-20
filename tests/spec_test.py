@@ -1,31 +1,33 @@
-from mods.speciation_model import spec2_matrix
+"""
+
+Description:
+    Test of speciation model functions
+"""
+
+import mods.speciation_model as sm 
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import importlib
 
-TOTC = np.arange(0.1,1+0.1,0.1) * 1000         # mol/L * 1000 L/m3 = mol/m3 
+importlib.reload(sm)
+
+TOTC = np.arange(1e-5, 1e-4 + 1e-5, 1e-5) * 1000         # mol/L * 1000 L/m3 = mol/m3 
 TK = 298                                       # K
 
 
-# those gave some strange results maybe bceause the R model is in another units or 
-# is in activity?
-# K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
-# K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
-# KW = 10**(-4.2195 - 2915.16/TK)
-
-# some another relations
-K_hco3 = 10**(-(3404.71/TK + 0.032786*TK - 14.8435))           
-K_co3 = 10**(-(2902.39/TK + 0.02379*TK - 6.498)) * K_hco3      
-KW = 10**(-(4470.99/TK + 0.017053*TK - 6.0875))                
+# equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
+K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
+K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
+KW = 10**(-4.2195 - 2915.16/TK)
 
 res = [] 
 for i in range(len(TOTC)):
-    res.append (spec2_matrix(TOTC[i],K_hco3,K_co3,KW ))
+    res.append (sm.spec2_matrix(TOTC[i],K_hco3,K_co3,KW ))
 
 # save the result in a dataframe
 df = pd.DataFrame(res)
 df['TOTC'] = TOTC
-
 
 # mass balance
 df['mass_balance_residual'] = df.TOTC - df.c_h2co3 - df.c_hco3 - df.c_co3
