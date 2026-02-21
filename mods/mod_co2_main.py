@@ -1,10 +1,12 @@
 
 import numpy as np
-import math
 import pandas as pd
 import sys
 from scipy.integrate import solve_ivp 
-           
+import mods.speciation_model as sm
+from importlib import reload
+reload(sm)
+          
 # molar masses for all species 
 M_co2   = 44.01                 # g/mol
 M_h2co3 = 62.03                 # g/mol
@@ -23,13 +25,13 @@ def molpm3_to_gpm3(c, M):
 # For CO2 absoption in aqueous solution of NaOH.
 def rates(t, n, 
           v_g, v_l, 
-          cgin, clin_co2,clin_TOTC, 
+          cgin, clin_co2, clin_TOTC, 
           vol_gas, vol_liq, vol_tot,
-          k1, k3, K1, K4, Kga, v_res, 
+          k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
           temp, henry, pres, 
-          ssa, dens_l, por_l, por_g, counter = True, recirc = False):  # Change the inputs(Rates and eq. cosntants)
+          ssa, dens_l, por_l, por_g, counter = True, recirc = False):
   
-    # interpolation function
+  # interpolation function
   def interpolation(t, c):                                             
     if type(c) is pd.core.frame.DataFrame:
         c = np.interp(t, c.iloc[:, 0], c.iloc[:, 1])
@@ -38,6 +40,7 @@ def rates(t, n,
     elif not (type(c) is int or type(c) is float):
         sys.exit(f'Error: input must be float, integer, numpy array, or a pandas data frame, but is {type(c)}')
     return c
+  
   # If time-variable concentrations coming in are given, get interpolated values
   # (then we interpolate to get current values at time t)
   clin_co2  = interpolation(t, clin_co2)
@@ -45,16 +48,16 @@ def rates(t, n,
   cgin      = interpolation(t, cgin)
 
   # reaction rates for the reverse reactions given by the equlibrium constant.
-  k2 = k1/K1
-  k4 = k3/K4 
+  k2 = k1 / K1
+  k4 = k3 / K4 
 
   # Number of cells (layers) (note integer division)
   nc = (len(n)-2)//3                                                   # double check this
   # Separate gas, liquid and reservoir state variables (mol) (mol/m2)
-  ncg     = n[0:nc]                              # CO2 in the gas phase
-  n_co2   = n[nc:(2 * nc)]                       # CO2 in the liquid phase
-  n_TOTC  = n[(2*nc):(3*nc)]                     # TOTC in the liquid phase
-  ncr     = n[(3*nc) : (3*nc)+2]                 # reservoir
+  ncg     = n[0        : nc]                       # CO2 in the gas phase
+  n_co2   = n[nc       : (2 * nc)]                 # CO2 in the liquid phase
+  n_TOTC  = n[(2 * nc) : (3 * nc)]                 # TOTC in the liquid phase
+  ncr     = n[(3 * nc) : (3 * nc) + 2]             # reservoir
 
   # the reservoir now should handle 2 species 
   # CO2 
@@ -63,30 +66,42 @@ def rates(t, n,
   ncr_TOTC = ncr[1]
 
   # Concentrations (mol/m3)
-  ccg     = ncg   / vol_gas                  # CO2 in the gas phase mol/m3                                                                 ## CHANGE
-  c_co2   = n_co2 / vol_liq                  # CO2 in the liquid phase mol/m3   
-  c_TOTC  = n_TOTC/ vol_liq                  # TOTC in the liquid phase mol/m3
+  ccg     = ncg    / vol_gas                  # CO2 in the gas phase mol/m3                                                                 ## CHANGE
+  c_co2   = n_co2  / vol_liq                  # CO2 in the liquid phase mol/m3   
+  c_TOTC  = n_TOTC / vol_liq                  # TOTC in the liquid phase mol/m3
 
-  # note that the concentrations of H2CO3, HCO3, CO3 and OH would be calculated
-  # from the speciation model, and therefore for now i would e.g. write c_h2co3 which does 
-  # not excist yet, but when i have made the speciation model this would be more clear. 
-  # Then it would be somethign like c_h2co3 = spec['H2CO3']
-     
+  # integrating the speciation model: 
+  c_h2co3 = np.zeros(nc)
+  c_hco3  = np.zeros(nc)
+  c_co3   = np.zeros(nc)
+  c_oh    = np.zeros(nc)
+  c_h     = np.zeros(nc)
+  pH      = np.zeros(nc)
+
+  for i in range(nc):
+      res = sm.spec2_matrix(c_TOTC[i], K_hco3, K_co3, KW, ex_oh)
+      c_h2co3[i] = res['c_h2co3']
+      c_hco3[i]  = res['c_hco3']
+      c_co3[i]   = res['c_co3']
+      c_oh[i]    = res['c_oh']
+      c_h[i]     = res['c_h']
+      pH[i]      = res['pH']
+
 
    # -----start----------- THis part needs to be fixed after talk with feilberg --------------
    # Caclulate Kga if requested (Mass transfer coefficient enhancement)
    # For ordinary Onda
   if type(Kga) is str and Kga.lower() == 'onda':
       # Hard-wired constants
-      g      = 9.81        # m / sec^2
-      Dg     = 1.16E-5     # gas diffusion coefficient in m2 / sec; compound specific     
-      Dliq   = 1.9E-9      # liquid diffusion coefficient                                  
-      sigm_c = 0.75        # critical surface tension
-      sigm_l = 0.0073      # surface tension
-      R      = 0.083144    # Gas constant (L bar / K-mol)
-      mw_g   = 28.97       # Air (gas mix) molecular weight (molar mass) (g/mol)
-
+      g      = 9.81                   # m / sec^2
+      Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
+      Dliq   = 1.9E-9                 # liquid diffusion coefficient                                  
+      sigm_c = 0.75                   # critical surface tension
+      sigm_l = 0.0073                 # surface tension
+      R      = 0.083144               # Gas constant (L bar / K-mol)
+      mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
       dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
+
       # empirical correlation for particle diameter
       if dp < 15:
           dp_emp = 2.0
@@ -99,6 +114,7 @@ def rates(t, n,
       dens_g = pres * mw_g / (R * TK) # g/L = kg/m3     # density of gas 
       visc_g = 9.1E-8 * TK - 1.16E-5                    # empirical relation for gas viscosity vs TK
       visc_l = -2.55E-5 * TK + 8.51E-3                  # liquid viscosity 
+
       # Dimensionless numbers 
       Re = dens_l * v_l / (ssa * visc_l)                # reynold
       Fr = v_l * v_l * ssa / g                          # Froude number
@@ -116,7 +132,7 @@ def rates(t, n,
       kl = 0.0051 * (v_l * dens_l / (ae * visc_l))**(2/3) * (visc_l / (dens_l * Dliq))**(-0.5) * (ssa * dp)**0.4 * (dens_l / (visc_l * g))**(-1/3)
 
      
-      kh  = henry[0] * math.exp(henry[1] * (1/TK - 1/298.15))  # mol/kg-bar as liq:gas   # vant hoff equation for calculating new henry constant
+      kh  = henry[0] * np.exp(henry[1] * (1/TK - 1/298.15))    # mol/kg-bar as liq:gas   # vant hoff equation for calculating new henry constant
       kh  = kh * dens_l / 1000                                 # mol/L-bar
       Kaw = 1 / (kh * R * TK)                                  # Neutral air-water distribution
     #   alpha0 = 1 / (1 + 10**(pH - pKa))                                                                   
@@ -147,8 +163,14 @@ def rates(t, n,
         cr_co2  = ncr_co2  / v_res                      # CO2 in the reservoir phase mol/m3   
         cr_TOTC = ncr_TOTC / v_res                      # TOTC in the reservoir phase mol/m3
 
-        r1_res = k1 * cr_co2 - k2 * c_h2co3
-        r2_res = k3 * cr_co2 * cr_oh - k4 * cr_hco3    # reaction 2 in the reservoir
+        # integrating the speciation model: 
+        res_reservoir = sm.spec2_matrix(cr_TOTC, K_hco3, K_co3, KW, ex_oh)
+        cr_h2co3 = res_reservoir['c_h2co3']
+        cr_hco3  = res_reservoir['c_hco3']
+        cr_oh    = res_reservoir['c_oh'] 
+
+        r1_res = k1 * cr_co2 - k2 * cr_h2co3
+        r2_res = k3 * cr_co2 * cr_oh - k4 * cr_hco3
         # co2 in the reservoir
         clin_co2 = ncr_co2 / v_res                  
         rxnr_co2 = (r1_res + r2_res)
@@ -159,12 +181,12 @@ def rates(t, n,
 
         # reservoir derivatives
         # CO2
-        dmcr_co2  = (c_co2[oi]-cr_co2) * abs(v_l) - rxnr_co2 * v_res
+        dmcr_co2  = (c_co2[oi] - cr_co2) * abs(v_l) - rxnr_co2 * v_res
         # TOTC
-        dmcr_TOTC = (c_TOTC[oi]-cr_TOTC)*abs(v_l) + rxnr_TOTC * v_res
+        dmcr_TOTC = (c_TOTC[oi] - cr_TOTC)*abs(v_l) + rxnr_TOTC * v_res
 
         # now we combine them together in one array
-        dmcr = np.array([dmcr_co2,dmcr_TOTC])
+        dmcr = np.array([dmcr_co2, dmcr_TOTC])
       elif v_res == 0:
           clin_co2  = c_co2[oi]
           clin_TOTC = c_TOTC[oi]
@@ -221,7 +243,7 @@ def rates(t, n,
   dm_TOTC    = advec_TOTC  + rxn_TOTC * vol_liq         # Rate of change of TOTC in the liquid 
 
  # Combine gas and liquid and reservoir
-  dm = np.concatenate([dmg, dm_co2,dm_TOTC,dmcr])               
+  dm = np.concatenate([dmg, dm_co2, dm_TOTC, dmcr])               
   # dm = np.append (dm, dmcr)
 
   #if t / 3600 > 0.05:
@@ -231,8 +253,8 @@ def rates(t, n,
 
 # Model function
 # TBR
-def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, 
-          clin_co2,clin_TOTC, cr_co20,cr_TOTC0, k1, K1, k3, Kga, henry, pKa,temp, dens_l, 
+def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
+          clin_co2, clin_TOTC, cr_co20, cr_TOTC0, k1, K1, k3, Kga, henry, pKa, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
           pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False):
 
@@ -257,6 +279,8 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    # --------------------- Reservoir Initial Concentrations ----------------
    # cr_co20   = initial CO2 concentration in reservoir (g/m3)
    # cr_TOTC0  = initial TOTC concentration in reservoir (mol/m3)
+   # --------------------- Excess OH^- cocnentration -----------------
+   # ex_oh     = excess OH^- concentration (mol/m3)
    # -------------------- physical parameters ----------------------
    # Kga       = mass transfer coefficient for gas to liquid in gas phase units (1/s = g/s-m3(t) / g/m3(g))
    # k1        = first-order rate constant for CO2 + H2O -> H2CO3 (s^-1)
@@ -300,17 +324,18 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
 
    # Temperature and Henry's law constant
    TK   = temp + 273.15
-   kh   = henry[0] * math.exp(henry[1] * (1/TK - 1/298.15))     # mol/kg-bar as liq:gas  (vant hoff)
+   kh   = henry[0] * np.exp(henry[1] * (1/TK - 1/298.15))       # mol/kg-bar as liq:gas  (vant hoff)
    kh   = kh * dens_l / 1000                                    # mol/L-bar
    Kaw  = 1 / (kh * R * TK)                                     # dimensionless, gas:liq, e.g., g/L / g/L or g/m3 per g/m3
    
    # Temperature dependent constants
-   Kw = 10**(-4.2195 - 2915.16/TK) # KW = 10^-pKw
+   KW        = 10**(-4.2195 - 2915.16/TK)
    rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)
-   K2 = math.exp(-12092.1/TK -36.786 * math.log(TK) + 235.482) * rho_water  # equlibrium constant for CO2 + H2O -> HCO3^- + H^+
-   K4 = K2/Kw                                                               # equilibrium constant for CO2 + OH^- -> HCO3^- (dimensionless)
-   K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
-   K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
+   K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                       # equlibrium constant for CO2 + H2O -> HCO3^- + H^+
+   K4        = K2/KW   
+   # equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
+   K_hco3    = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
+   K_co3     = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
 
    
    # Create cells
@@ -327,10 +352,10 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    vol_liq = vol_tot * por_l 
 
    # convert the users input from g/m3 to mol/m3 so it fits the units of the model
-   cg0      = gpm3_to_molpm3(cg0, M_co2)
-   cgin     = gpm3_to_molpm3(cgin, M_co2)
-   cl_co20  = gpm3_to_molpm3(cl_co20,  M_co2)
-   clin_co2  = gpm3_to_molpm3(clin_co2,  M_co2)
+   cg0      = gpm3_to_molpm3(cg0      , M_co2)
+   cgin     = gpm3_to_molpm3(cgin     , M_co2)
+   cl_co20  = gpm3_to_molpm3(cl_co20  , M_co2)
+   clin_co2 = gpm3_to_molpm3(clin_co2 , M_co2)
 
 
 
@@ -345,13 +370,13 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    c_TOTC = np.full((nc), cl_TOTC0) 
 
    # convert concentration to moles
-   ncg      = ccg * vol_gas            # mol/m3 * m3 = mol
-   ncl_co2  = c_co2 * vol_liq
+   ncg      = ccg    * vol_gas            # mol/m3 * m3 = mol
+   ncl_co2  = c_co2  * vol_liq
    ncl_TOTC = c_TOTC * vol_liq
 
 
    # Initial state variable array
-   y0 = np.concatenate([ncg, ncl_co2,ncl_TOTC,cr])
+   y0 = np.concatenate([ncg, ncl_co2, ncl_TOTC, cr])
    #  y0 = np.append (y0, ncr)
 
 
@@ -359,24 +384,25 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
    # Solve/integrate
    out = solve_ivp(rates, [0, max(times)], y0 = y0, 
                    t_eval = times, 
-                   args = (v_g, v_l,cgin, clin_co2,clin_TOTC,
-                           vol_gas, vol_liq, vol_tot, k1, k3, K1, K4, Kga, v_res,
-                           temp, henry, pres,ssa, dens_l, por_l, por_g, counter, recirc
+                   args = (v_g, v_l, cgin, clin_co2, clin_TOTC,
+                           vol_gas, vol_liq, vol_tot,
+                           k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
+                           temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc
                            ),
                    method = 'Radau')
    
    # Extract moles of compound [position, time]
-   ncgt      = out.y[0:nc]       
-   ncl_co2t  = out.y[nc:(2 * nc)]
-   ncl_TOTCt = out.y[(2*nc):(3*nc)]
-   ncr       = out.y[(3*nc):(3*nc+2)]
+   ncgt      = out.y[0        : nc]       
+   ncl_co2t  = out.y[nc       : (2 * nc)]
+   ncl_TOTCt = out.y[(2 * nc) : (3 * nc)]
+   ncr       = out.y[(3 * nc) : (3 * nc + 2)]
    nctot     = np.sum(ncgt,0) + np.sum(ncl_co2t,0) + np.sum(ncl_TOTCt,0)  #total mass of compuond in the entire column as a function of time. why? 
 
    # Get concentrations vs. time
    # Gas
-   ccgt      = ncgt / np.transpose(np.tile(vol_gas, (ncgt.shape[1], 1)))         # why not just ncgt/vol_gas
+   ccgt      = ncgt / np.transpose(np.tile(vol_gas, (ncgt.shape[1], 1)))
    # co2
-   ccl_co2t  = ncl_co2t / np.transpose(np.tile(vol_liq, (ncl_co2t.shape[1], 1))) # why not just ncl_co2t/vol_liq
+   ccl_co2t  = ncl_co2t / np.transpose(np.tile(vol_liq, (ncl_co2t.shape[1], 1)))
    # TOTC
    ccl_TOTCt = ncl_TOTCt / np.transpose(np.tile(vol_liq, (ncl_TOTCt.shape[1], 1)))
 
@@ -385,10 +411,17 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin,
 
    nct = np.concatenate([ncgt, ncl_co2t,ncl_TOTCt])
 
-   
+   # integrating the speciation model
+   pH_profile = np.zeros_like(ccl_TOTCt)
+   for c in range(ccl_TOTCt.shape[0]):
+       for t in range(ccl_TOTCt.shape[1]):
+           res_out = sm.spec2_matrix(ccl_TOTCt[c,t], K_hco3, K_co3, KW, ex_oh)
+           pH_profile[c,t] = res_out['pH'] 
+
    # Return results as a dictionary
    return {'gas_conc'    : molpm3_to_gpm3(ccgt,M_co2),
           'co2_liq_conc' : molpm3_to_gpm3(ccl_co2t,M_co2),
+          'pH_profile'   : pH_profile,
           'TOTC_liq_conc': ccl_TOTCt,
           'cell_pos'     : x,
           'time'         : times,
