@@ -4,8 +4,10 @@ import pandas as pd
 import sys
 from scipy.integrate import solve_ivp 
 import mods.speciation_model as sm
+import mods.enhancement_mod as em
 from importlib import reload
 reload(sm)
+reload(em)
           
 # molar masses for all species 
 M_co2   = 44.01                 # g/mol
@@ -29,7 +31,7 @@ def rates(t, n,
           vol_gas, vol_liq, vol_tot,
           k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
           temp, henry, pres, 
-          ssa, dens_l, por_l, por_g, counter = True, recirc = False):
+          ssa, dens_l, por_l, por_g, counter = True, recirc = False, enh_method = 'PFO'):
   
   # interpolation function
   def interpolation(t, c):                                             
@@ -95,7 +97,7 @@ def rates(t, n,
       # Hard-wired constants
       g      = 9.81                   # m / sec^2
       Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
-      Dliq   = 1.9E-9                 # liquid diffusion coefficient                                  
+      Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
       sigm_c = 0.75                   # critical surface tension
       sigm_l = 0.0073                 # surface tension
       R      = 0.083144               # Gas constant (L bar / K-mol)
@@ -134,16 +136,27 @@ def rates(t, n,
      
       kh  = henry[0] * np.exp(henry[1] * (1/TK - 1/298.15))    # mol/kg-bar as liq:gas   # vant hoff equation for calculating new henry constant
       kh  = kh * dens_l / 1000                                 # mol/L-bar
-      Kaw = 1 / (kh * R * TK)                                  # Neutral air-water distribution
-    #   alpha0 = 1 / (1 + 10**(pH - pKa))                                                                   
-    #   Daw = alpha0 * Kaw                                                                                  
-    #   For CO2 no acid base eq. needed at high pH all the CO2 reacts with OH-
-      Daw = Kaw                      # air water distribution (simple at high pH)                           
+      Kaw = 1 / (kh * R * TK)                                  # Neutral air-water distribution                                                                                                                                         
+
+      Daw = Kaw                                                # air water distribution                          
     
       #Enhancement factor for chemical reaction
-      #Allows chemical reaction to happen in the liquid phase. 
-      Ha = (Dliq* k1 * c_oh)**0.5/kl   # Hatta number, assumes fast reaction (Kasper and Feilberg, 2019)
-      E  = Ha/np.tanh(Ha)              # Enhancment factor, assumes fast reaction (Kasper and Feilberg, 2019)
+      # interfacial co2 concentration
+      # note we cant just use c_co2 because c_co2 is the bulk concentration.
+      c_co2i = ccg / Kaw            # Anders also did this, but he said maybe there is a 
+                                    # better way to do it here in the model... 
+      if enh_method is not None:
+          E = em.enh_fac(
+              c_oh   = c_oh,
+              c_co2  = c_co2i,
+              k      = k3,
+              K      = K4,
+              kl     = kl,
+              method = enh_method
+              )
+      else:
+          E = 1.0
+
       # breakpoint()
       Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k1 * por_l) # reference p181 in Seader et al book (resistance in serie two film)
       Kga  = 1 / Rtot # overall mass transfer coefficient
@@ -256,44 +269,167 @@ def rates(t, n,
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
           clin_co2, clin_TOTC, cr_co20, cr_TOTC0, k1, K1, k3, Kga, henry, pKa, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
-          pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False):
+          pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO'):
+   """"
+    Simulate CO2 absorption in a trickle bed reaction/film with chemical reaction
 
-   ## Note that units are defined per 1 m2 filter cross-sectional (total) area 
-   ## Below, where 2 sets of units are given this applies to the first case
-   ## For the second one, the cross-sectional area is used to normalize the unit
-   ## The two are mathematically equivalent
-   # L         = total longitudinal length/height of reactor/filter (m)
-   # por_g     = gas phase porosity (m3/m3 = m3(g)/m3(t) where g = gas and t = total)
-   # por_l     = liquid phase content (m3/m3 = m3(l)/m3(t) where l = liquid)
-   # v_g       = superficial velocity in m/s
-   # v_l       = superficial velocity in m/s
-   # nc        = number of cells (layers)
-   # -------------------------initial concentrations --------------------------
-   # cg0       = initial compound concentration in gas phase (g/m3 = g(compound)/m3(g))
-   # cl_co20   = initial CO2 concentration in liquid phase (g/m3)
-   # cl_TOTC0  = initial TOTC concetraion in the liquid phase(mol/m3) 
-   # -------------------------- inflow concentrations --------------------
-   # cgin      = CO2 concentration in gas inflow (g/m3(g))
-   # clin_co2  = CO2 concentration in liquid inflow (g/m3(l)) (ignored if recirc = True)
-   # clin_TOTC = TOTC concentration in liquid inflow (mol/m3(l)) (ignored if recirc = True)
-   # --------------------- Reservoir Initial Concentrations ----------------
-   # cr_co20   = initial CO2 concentration in reservoir (g/m3)
-   # cr_TOTC0  = initial TOTC concentration in reservoir (mol/m3)
-   # --------------------- Excess OH^- cocnentration -----------------
-   # ex_oh     = excess OH^- concentration (mol/m3)
-   # -------------------- physical parameters ----------------------
-   # Kga       = mass transfer coefficient for gas to liquid in gas phase units (1/s = g/s-m3(t) / g/m3(g))
-   # k1        = first-order rate constant for CO2 + H2O -> H2CO3 (s^-1)
-   # k3        = second-order rate constant for CO2 + OH^- -> HCO3^- (m3/mol-s)
-   # K1        = equilibrium constant for CO2 + H2O -> H2CO3 (dimensionless)
-   # henry     = Henry's law constant coefficients as [k_H at 25 C, d(ln(kH)) / d(1/T)] as in NIST Chemistry Web Book
-   # temp      = temperature (degrees C)
-   # dens_l    = solution (liquid) density (kg/m3)
-   # pres      = total pressure (bar?)
-   # ssa       = particle specific surface area (m2 surface / m3 bulk volume)
-   # count     = Boolean for countercurrent flow
-   # v_res     = volume of a reservoir for the liquid phase (m3 pr m2 cross sectional area), ignored if recirc = False
-   # typ       = type of filtermaterial if Kim and Deshusses is used for mass transfer estimation (options:LR, PUF, PR, PCB or PCR for lava rock, polyurethane foam, pall ring, porous ceramic bead and porous ceramic ring)
+
+    Parameters
+    ----------
+    L : float
+        Total longitudinal length/height of reactor/filter (m)
+    por_g : float
+        Gas phase porosity (m³ gas / m³ total volume)
+    por_l : float
+        Liquid phase content (m³ liquid / m³ total volume)
+    v_g : float
+        Superficial gas velocity (m/s)
+    v_l : float
+        Superficial liquid velocity (m/s)
+    nc : int
+        Number of cells (layers)
+        
+    Initial concentrations
+    ----------------------
+    cg0 : float
+        Initial CO2 concentration in gas phase (g/m³ gas)
+    cl_co20 : float
+        Initial CO2 concentration in liquid phase (g/m³ liquid)
+    cl_TOTC0 : float
+        Initial total inorganic carbon (TOTC) concentration in liquid phase (mol/m³ liquid)
+    
+    Inflow concentrations
+    ---------------------
+    cgin : float
+        CO2 concentration in gas inflow (g/m³ gas)
+    ex_oh : float
+        Excess OH⁻ concentration (mol/m³ liquid)
+    clin_co2 : float
+        CO2 concentration in liquid inflow (g/m³ liquid) (ignored if recirc = True)
+    clin_TOTC : float
+        TOTC concentration in liquid inflow (mol/m³ liquid) (ignored if recirc = True)
+    
+    Reservoir initial concentrations
+    --------------------------------
+    cr_co20 : float
+        Initial CO2 concentration in reservoir (g/m³)
+    cr_TOTC0 : float
+        Initial TOTC concentration in reservoir (mol/m³)
+    
+    Reaction and equilibrium parameters
+    -----------------------------------
+    k1 : float
+        First-order rate constant for CO2 + H2O → H2CO3 (s⁻¹)
+    K1 : float
+        Equilibrium constant for CO2 + H2O ⇌ H2CO3 (dimensionless)
+    k3 : float
+        Second-order rate constant for CO2 + OH⁻ → HCO3⁻ (m³/mol·s)
+    pKa : float
+        pKa value for relevant acid-base equilibrium
+    
+    Mass transfer parameters
+    ------------------------
+    Kga : float
+        Overall mass transfer coefficient for gas to liquid in gas phase units (s⁻¹)
+    henry : array_like
+        Henry's law constant coefficients [k_H at 25°C, d(ln(kH))/d(1/T)] as in NIST Chemistry WebBook
+    
+    Physical parameters
+    -------------------
+    temp : float
+        Temperature (°C)
+    dens_l : float
+        Liquid density (kg/m³)
+    pres : float, optional
+        Total pressure (bar). Default is 1.0
+    ssa : float, optional
+        Particle specific surface area (m² surface / m³ bulk volume). Default is 1100
+    
+    Numerical parameters
+    --------------------
+    times : array_like
+        Time points for which output is desired (s)
+    
+    Model options
+    -------------
+    kg : str, optional
+        Method for gas phase mass transfer coefficient estimation. 
+        Options: 'onda' (Onda's correlation). Default is 'onda'
+    kl : str, optional
+        Method for liquid phase mass transfer coefficient estimation.
+        Options: 'onda' (Onda's correlation). Default is 'onda'
+    ae : str, optional
+        Method for effective interfacial area estimation.
+        Options: 'onda' (Onda's correlation). Default is 'onda'
+    v_res : float, optional
+        Volume of reservoir for liquid phase (m³ per m² cross-sectional area). 
+        Ignored if recirc = False. Default is 0
+    typ : str, optional
+        Type of filter material for Kim & Deshusses mass transfer estimation.
+        Options: 'LR' (lava rock), 'PUF' (polyurethane foam), 'PR' (pall ring), 
+        'PCB' (porous ceramic bead), 'PCR' (porous ceramic ring). Default is 'TBD'
+    counter : bool, optional
+        If True, simulate countercurrent flow. If False, simulate cocurrent flow.
+        Default is True
+    recirc : bool, optional
+        If True, liquid is recirculated through a reservoir. If False, single-pass.
+        Default is False
+    enh_method : str, optional
+        Method for calculating the enhancement factor due to chemical reaction.
+        Options:
+        - 'PFO' : Pseudo first-order reaction
+        - 'RSO' : Reversible second-order reaction
+        Default is 'PFO'
+    
+    Returns
+    -------
+    dict
+        Dictionary containing simulation results with the following keys:
+        
+        gas_conc : ndarray
+            Gas phase CO2 concentration over time and position (g/m³ gas)
+            Shape: (nc, len(times))
+        co2_liq_conc : ndarray
+            Liquid phase CO2 concentration over time and position (g/m³ liquid)
+            Shape: (nc, len(times))
+        pH_profile : ndarray
+            pH over time and position
+            Shape: (nc, len(times))
+        TOTC_liq_conc : ndarray
+            Total inorganic carbon concentration in liquid phase (mol/m³ liquid)
+            Shape: (nc, len(times))
+        cell_pos : ndarray
+            Center positions of each cell (m)
+            Shape: (nc,)
+        time : ndarray
+            Time points corresponding to simulation output (s)
+            Shape: (len(times),)
+        inputs : dict
+            Copy of all input parameters for reference
+        pars : dict
+            Calculated parameters including:
+            - gas_rt : Gas phase retention time (s)
+            - liq_rt : Liquid phase retention time (s)
+            - Kga : Mass transfer coefficient (s⁻¹)
+            - Kaw : Dimensionless air-water partition coefficient
+            - ae : Effective interfacial area
+            - kg : Gas phase mass transfer coefficient
+            - kl : Liquid phase mass transfer coefficient
+    
+    Notes
+    -----
+    - All units are normalized per 1 m² filter cross-sectional area
+    - The model accounts for temperature-dependent equilibrium constants
+    - Chemical speciation (pH, carbonate species) is calculated using the 
+      spec2_matrix function from an imported speciation model (sm)
+    - The system of ODEs is solved using the 'Radau' method from scipy.integrate.solve_ivp
+    
+    References
+    ----------
+    - NIST Chemistry WebBook for Henry's law constants
+    - Onda et al. (1968) for mass transfer correlations
+    - Kim & Deshusses (2003) for filter material specific correlations
+   """
 
    # Save input arguments for echoing in output
    args_in = locals()
@@ -387,8 +523,8 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                    args = (v_g, v_l, cgin, clin_co2, clin_TOTC,
                            vol_gas, vol_liq, vol_tot,
                            k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
-                           temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc
-                           ),
+                           temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc,
+                           enh_method),
                    method = 'Radau')
    
    # Extract moles of compound [position, time]
