@@ -29,7 +29,7 @@ def rates(t, n,
           v_g, v_l, 
           cgin, clin_co2, clin_TOTC, 
           vol_gas, vol_liq, vol_tot,
-          k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
+          k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
           temp, henry, pres, 
           ssa, dens_l, por_l, por_g, counter = True, recirc = False, enh_method = 'PFO'):
   
@@ -50,7 +50,6 @@ def rates(t, n,
   cgin      = interpolation(t, cgin)
 
   # reaction rates for the reverse reactions given by the equlibrium constant.
-  k2 = k1 / K1
   k4 = k3 / K4 
 
   # Number of cells (layers) (note integer division)
@@ -145,6 +144,8 @@ def rates(t, n,
       # note we cant just use c_co2 because c_co2 is the bulk concentration.
       c_co2i = ccg / Kaw            # Anders also did this, but he said maybe there is a 
                                     # better way to do it here in the model... 
+                                    # maybe we have to use something like two film approach
+                                    # c_co2i = c_co2 + N_A /kl 
       if enh_method is not None:
           E = em.enh_fac(
               c_oh   = c_oh,
@@ -267,7 +268,7 @@ def rates(t, n,
 # Model function
 # TBR
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
-          clin_co2, clin_TOTC, cr_co20, cr_TOTC0, k1, K1, k3, Kga, henry, pKa, temp, dens_l, 
+          clin_co2, clin_TOTC, cr_co20, cr_TOTC0, Kga, henry, pKa, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
           pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO'):
    """"
@@ -315,17 +316,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
         Initial CO2 concentration in reservoir (g/m³)
     cr_TOTC0 : float
         Initial TOTC concentration in reservoir (mol/m³)
-    
-    Reaction and equilibrium parameters
-    -----------------------------------
-    k1 : float
-        First-order rate constant for CO2 + H2O → H2CO3 (s⁻¹)
-    K1 : float
-        Equilibrium constant for CO2 + H2O ⇌ H2CO3 (dimensionless)
-    k3 : float
-        Second-order rate constant for CO2 + OH⁻ → HCO3⁻ (m³/mol·s)
-    pKa : float
-        pKa value for relevant acid-base equilibrium
     
     Mass transfer parameters
     ------------------------
@@ -465,14 +455,21 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    Kaw  = 1 / (kh * R * TK)                                     # dimensionless, gas:liq, e.g., g/L / g/L or g/m3 per g/m3
    
    # Temperature dependent constants
-   KW        = 10**(-4.2195 - 2915.16/TK)
-   rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)
-   K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                       # equlibrium constant for CO2 + H2O -> HCO3^- + H^+
-   K4        = K2/KW   
+   KW        = 10**(-4.2195 - 2915.16/TK)                                                               # Water dissociation constant 
+   rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)   # density of water  [kg/m3]
+   K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                           # equlibrium constant for CO2 + H2O -> HCO3^- + H^+ [mol/m3]
+   K4        = K2/KW                                                                                    # equlibrium constant for CO2 + OH^- --> HCO3^-
    # equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
    K_hco3    = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
    K_co3     = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
 
+
+   # Reaction rate constants
+   # refrence:  Rate-Based Modeling of Reactive Absorption of CO2 and H2S into Aqueous Methyldiethanolamine
+   #            Comprehensive Study of the Hydration and Dehydration Reactions of Carbon Dioxide in Aqueous Solution
+   k3 = 4.315 * 10**13 * np.exp(- 6666/TK) / 1000               # Second-order rate constant for CO2 + OH⁻ → HCO3⁻  [m3/mol-s]
+   k1 = 6.672 * 10**12 * np.exp(- 9.724 * 10**3 / TK)           # First-order rate constant for CO2 + H2O → H2CO3   [s^-1]
+   k2 = 9.000 * 10**13 * np.exp(- 8.612 * 10**3 / TK)           # First-order rate constant for H2CO3  → CO2 + H2O  [s^-1]
    
    # Create cells
    # we create nc equally spaced cells over the lenght L
@@ -522,7 +519,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                    t_eval = times, 
                    args = (v_g, v_l, cgin, clin_co2, clin_TOTC,
                            vol_gas, vol_liq, vol_tot,
-                           k1, k3, K1, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
+                           k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
                            temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc,
                            enh_method),
                    method = 'Radau')
