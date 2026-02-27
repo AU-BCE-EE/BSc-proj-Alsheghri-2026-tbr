@@ -137,7 +137,7 @@ window.Quarto = {
 
 <section id="the-unit-conversion-functions" class="level2">
 <h2 class="anchored" data-anchor-id="the-unit-conversion-functions">The unit conversion functions</h2>
-<div id="049db440" class="cell" data-execution_count="1">
+<div id="aed69040" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>M_co2   <span class="op">=</span> <span class="fl">44.01</span>                 <span class="co"># g/mol</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>M_h2co3 <span class="op">=</span> <span class="fl">62.03</span>                 <span class="co"># g/mol</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>M_co3   <span class="op">=</span> <span class="fl">60.01</span>                 <span class="co"># g/mol</span></span>
@@ -150,7 +150,7 @@ window.Quarto = {
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> c <span class="op">*</span> M</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Lets make a simple test:</p>
-<div id="7b693ba7" class="cell" data-execution_count="2">
+<div id="3e5b002b" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>c_oh <span class="op">=</span> <span class="dv">10</span>   <span class="co">#g/m3</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>gpm3_to_molpm3(c_oh,M_oh)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -158,7 +158,7 @@ window.Quarto = {
 </div>
 </div>
 <p>We get the expected result.</p>
-<div id="9ba1fbdc" class="cell" data-execution_count="3">
+<div id="fd3472f1" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>c_h2co3 <span class="op">=</span> <span class="fl">0.1</span>  <span class="co"># mol/m3</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>molpm3_to_gpm3(c_h2co3,M_h2co3)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -169,7 +169,7 @@ window.Quarto = {
 </section>
 <section id="units-of-concentrations" class="level2">
 <h2 class="anchored" data-anchor-id="units-of-concentrations">Units of concentrations:</h2>
-<div id="dd28c583" class="cell" data-execution_count="4">
+<div id="58208c97" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ccg     = ncg    / vol_gas </span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># c_co2   = n_co2  / vol_liq</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># c_TOTC  = n_TOTC / vol_liq </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -178,7 +178,7 @@ window.Quarto = {
 </section>
 <section id="output-from-speciation-function" class="level2">
 <h2 class="anchored" data-anchor-id="output-from-speciation-function">Output from speciation function</h2>
-<div id="017c54df" class="cell" data-execution_count="5">
+<div id="6f734ee5" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for i in range(nc):</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#     res = sm.spec2_matrix(c_TOTC[i], K_hco3, K_co3, KW, ex_oh)</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     c_h2co3[i] = res['c_h2co3']</span></span>
@@ -192,7 +192,7 @@ window.Quarto = {
 </section>
 <section id="the-kga-calculation" class="level2">
 <h2 class="anchored" data-anchor-id="the-kga-calculation">The Kga calculation</h2>
-<div id="8346355d" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="6">
+<div id="744d960a" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">type</span>(Kga) <span class="kw">is</span> <span class="bu">str</span> <span class="kw">and</span> Kga.lower() <span class="op">==</span> <span class="st">'onda'</span>:</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Hard-wired constants</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>      g      <span class="op">=</span> <span class="fl">9.81</span>                   <span class="co"># m/s^2   </span></span>
@@ -262,7 +262,7 @@ window.Quarto = {
 </section>
 <section id="reservoir-odes" class="level2">
 <h2 class="anchored" data-anchor-id="reservoir-odes">Reservoir ODEs</h2>
-<div id="ae09c3a2" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="7">
+<div id="bc9dd8c1" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dmcr_co2  <span class="op">=</span> (c_co2[oi] <span class="op">-</span> cr_co2) <span class="op">*</span> <span class="bu">abs</span>(v_l) <span class="op">-</span> rxnr_co2 <span class="op">*</span> v_res </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># mol/m3 * m/s - mol/m3-s * m3/m2 = mol/m2-s - mol/m2-s  but since A = 1 m^2  we get mol/s</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>dmcr_TOTC <span class="op">=</span> (c_TOTC[oi] <span class="op">-</span> cr_TOTC)<span class="op">*</span><span class="bu">abs</span>(v_l) <span class="op">+</span> rxnr_TOTC <span class="op">*</span> v_res</span>
@@ -271,21 +271,21 @@ window.Quarto = {
 </section>
 <section id="the-reaction-rates" class="level2">
 <h2 class="anchored" data-anchor-id="the-reaction-rates">the reaction rates</h2>
-<div id="6d946688" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="8">
+<div id="b06170b6" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>r1 <span class="op">=</span> k1 <span class="op">*</span> c_co2 <span class="op">-</span> k2 <span class="op">*</span> c_h2co3          <span class="co"># 1/s * mol/m3 - 1/s * mol/m3 = mol/m^3-s</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>r2 <span class="op">=</span> k3 <span class="op">*</span> c_co2 <span class="op">*</span> c_oh <span class="op">-</span> k4 <span class="op">*</span> c_hco3  <span class="co"># m3/mol-s * mol/m3 * mol/m3 - 1/s * mol/mo3 = mol/m^3-s</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="the-mass-transfer-term" class="level2">
 <h2 class="anchored" data-anchor-id="the-mass-transfer-term">The mass transfer term</h2>
-<div id="6ae1fb74" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="9">
+<div id="b56ca788" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>g2l <span class="op">=</span> Kga <span class="op">*</span> vol_tot <span class="op">*</span> (ccg <span class="op">-</span> c_co2 <span class="op">*</span> Daw) </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#     1/s * m3 * mol/m3 = mol/s </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="the-pdes" class="level2">
 <h2 class="anchored" data-anchor-id="the-pdes">The PDEs</h2>
-<div id="025f970f" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="10">
+<div id="823763d2" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>advec_gas <span class="op">=</span> <span class="op">-</span> v_g <span class="op">*</span> np.diff(cvec_gas) <span class="co"># m/s * mol/m3 = mol/m2-s but since the area = 1m2 this becomes mol/s</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>dmg       <span class="op">=</span> advec_gas <span class="op">-</span> g2l           <span class="co"># mol/s - mol/s = mol/s       </span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -300,7 +300,7 @@ window.Quarto = {
 </section>
 <section id="equilibrium-constants-in-the-tfmod" class="level2">
 <h2 class="anchored" data-anchor-id="equilibrium-constants-in-the-tfmod">Equilibrium constants in the tfmod</h2>
-<div id="de18afa1" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="11">
+<div id="4a999476" class="cell" data-comment="This code is shown for unit verification only - not executed" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Temperature dependent constants</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>KW        <span class="op">=</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span><span class="fl">4.2195</span> <span class="op">-</span> <span class="fl">2915.16</span><span class="op">/</span>TK)  <span class="op">*</span> <span class="dv">10</span><span class="op">**</span><span class="dv">6</span> </span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># units are in  mol^2/L^2</span></span>
@@ -315,9 +315,8 @@ window.Quarto = {
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>K4        <span class="op">=</span> K2<span class="op">/</span>KW  </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>here comes the mistake: K2 has units of <span class="math inline">\(mol/m^3\)</span> but KW has units of <span class="math inline">\(mol^2/L^2\)</span> so we actually need to correct this. Then the equation becomes <span class="math display">\[K_4 = K_2 / (K_W * 10^6) \]</span></p>
-<pre class="{comment}"><code>$K_W$ still needs to be in $mol^2/L^2$ because of the specaition model.  
-All the equlibrium constants passed to the speciation model needs to be in $mol/L$ units.
-And all the constants used in the main model and the enhancement factor model needs to be in $mol/m^3$ </code></pre>
+<p><span class="math inline">\(K_W\)</span> still needs to be in <span class="math inline">\(mol^2/L^2\)</span> because of the specaition model.<br>
+All the equlibrium constants passed to the speciation model needs to be in <span class="math inline">\(mol/L\)</span> units. And all the constants used in the main model and the enhancement factor model needs to be in <span class="math inline">\(mol/m^3\)</span></p>
 </section>
 
 </main>
