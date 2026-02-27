@@ -156,11 +156,11 @@ def rates(t, n,
               method = enh_method
               )
       else:
-          E = 1.0
+          E = 1
 
-      # breakpoint()
       Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k1 * por_l) # reference p181 in Seader et al book (resistance in serie two film)
       Kga  = 1 / Rtot # overall mass transfer coefficient
+    #   breakpoint()
 
 ##### Check units of Kga !!!! ####### bacause the rate function is now in moles...
 #------------------------------------ end ----------------------------------------------------
@@ -209,7 +209,10 @@ def rates(t, n,
 
   # Derivatives
   # Set up empty arrays
-  dmg = dm_co2 = dm_TOTC = g2l = np.zeros(nc)
+  dmg     = np.zeros(nc)
+  dm_co2  = np.zeros(nc)
+  dm_TOTC = np.zeros(nc) 
+  g2l     = np.zeros(nc)
 
 
   # Common term, mass transfer into liquid phase (mol/s)
@@ -439,9 +442,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    cl_TOTC0 = float(cl_TOTC0)
    cr_co20  = float(cr_co20)
    cr_TOTC0 = float(cr_TOTC0)
-   k1       = float(k1)
-   k3       = float(k3)
-   K1       = float(K1)
    pKa      = float(pKa)
    temp     = float(temp)
    dens_l   = float(dens_l)
@@ -455,10 +455,10 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    Kaw  = 1 / (kh * R * TK)                                     # dimensionless, gas:liq, e.g., g/L / g/L or g/m3 per g/m3
    
    # Temperature dependent constants
-   KW        = 10**(-4.2195 - 2915.16/TK)                                                               # Water dissociation constant 
+   KW        = 10**(-4.2195 - 2915.16/TK)  * 10**6                                                              # Water dissociation constant 
    rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)   # density of water  [kg/m3]
    K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                           # equlibrium constant for CO2 + H2O -> HCO3^- + H^+ [mol/m3]
-   K4        = K2/KW                                                                                    # equlibrium constant for CO2 + OH^- --> HCO3^-
+   K4        = K2/ (KW * 10**6)                                                                                  # equlibrium constant for CO2 + OH^- --> HCO3^-
    # equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
    K_hco3    = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
    K_co3     = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
