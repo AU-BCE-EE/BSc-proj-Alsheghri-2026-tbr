@@ -222,3 +222,115 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
 
     return out
 
+
+# ========================== Vectorized spec2_matrix function =============================
+# turns out this is slower than the loop version......
+from scipy.optimize import root
+def spec2_vector(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
+    
+    """
+    Calculate carbonate system speciation and pH from total carbonate
+    concentration. This version excludes CO2 (aq), which is assumed
+    to be converted to H2CO3 and HCO3- in kinetically-limited 
+    reactions.
+
+    Author: Osman Alsheghri
+
+    Parameters/Input
+    -------------
+    TOTC  : float
+            Total carbonate concentration (mol/m3) = [H2CO3] + [HCO3^-] + [CO3^2-]
+
+    K_hco3: float
+            Equilibrium constant for H2CO3 ⇌ HCO3^- + H^+
+
+    K_co3 : float
+            Equilibrium constant for H2CO3 ⇌ CO3^2-  + 2H^+
+
+    KW    : float
+            Water dissociation constant 
+
+    c_oh  : concentration of excess OH- (mol/m3)
+
+    Returns
+    ----------
+    Dictionary
+        'c_h2co3' : float - H2CO3 concentration     (mol/m3)
+        'c_hco3'  : float - HCO3^- concentration    (mol/m3)
+        'c_co3'   : float - CO3^2- concentration    (mol/m3)
+        'c_oh'    : float - OH^- concentration      (mol/m3)
+        'c_h'     : float - H^+ concentration       (mol/m3)
+        'pH'      : float - pH value
+    """
+
+    # the axis = 0 is important for the directio of the sum
+    # the [None, :] and [:, None] changes the shapes of the arrays 
+    # so the equations are consisten, chat helped here(i could see it myself)
+
+    # Most of the function is still the same. 
+    # Convert mol/m3 to mol/L
+
+    # i started by using np.asarray but chatgpt suggested np.atleas_1d
+    TOTC  = np.atleast_1d(TOTC).astype(float) / 1000
+    ex_oh = np.atleast_1d(ex_oh).astype(float) / 1000
+
+    if ex_oh.size == 1:
+         ex_oh = np.full_like(TOTC,ex_oh) # ensures consisten shape
+
+    S = np.array([
+        [-1, 1],  # HCO3^-
+        [-1, 2],  # CO3^2-
+        [0,  1]   # OH^-
+    ])
+
+    K = np.array([K_hco3, K_co3, KW])
+
+    def residH(c_h_vec):
+         denom = 1.0 + np.sum(
+              K[:, None] *  
+              (c_h_vec[None, :] ** (-S[:, 1][:, None])) *
+              (-S[:, 0][:, None]), axis = 0)
+         
+         c_h2co3 = TOTC / denom
+
+         conc = (
+              K[:, None] * 
+              (c_h2co3[None, :] ** (-S[:, 0][:, None])) * 
+              (c_h_vec[None, :] ** (-S[:, 1][:, None]))
+         )
+         
+         return c_h_vec - np.sum(conc * S[:,1][:, None], axis = 0) + ex_oh
+    # https://docs.scipy.org/doc/scipy/reference/optimize.html Multidimensional root finding
+
+    c_h0 = np.full_like(TOTC, 1 * 10**-7) # initial guess
+    sol = root(residH, c_h0, method = 'hybr')
+
+    # 'success' a Boolean flag indicating if the algorithm exited 
+    # successfully and 'message' which describes the cause of the termination.
+    if not sol.success:
+         raise RuntimeError(f'Root finding failed, error {sol.message}')
+
+    c_h = sol.x
+
+    denom = 1.0 + np.sum(
+        K[:, None] * 
+        (c_h[None, :] ** (-S[:, 1][:, None])) *
+        (-S[:, 0][:, None]), axis = 0)
+    
+    c_h2co3 = TOTC / denom
+    conc = (
+              K[:, None] * 
+              (c_h2co3[None, :] ** (-S[:, 0][:, None])) * 
+              (c_h[None, :] ** (-S[:, 1][:, None]))
+         )
+    pH = - np.log10(c_h)
+
+    out = {
+        'c_h2co3': c_h2co3 * 1000,
+        'c_hco3' : conc[0] * 1000,
+        'c_co3'  : conc[1] * 1000,
+        'c_oh'   : conc[2] * 1000,
+        'c_h'    : c_h     * 1000,
+        'pH'     : pH,
+    }
+    return out

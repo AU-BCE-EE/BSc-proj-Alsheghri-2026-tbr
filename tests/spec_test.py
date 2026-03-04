@@ -80,3 +80,45 @@ plt.legend()
 plt.grid()
 # plt.savefig('Species_distribution.png')
 plt.show()
+
+# ==================================== test the new vectorized function 
+res2 = sm.spec2_vector(TOTC, K_hco3, K_co3, KW, ex_oh)
+df2 = pd.DataFrame(res2) 
+df2['TOTC'] = TOTC 
+df2['ex_oh'] = ex_oh 
+df2['mass_balance_residual'] = df2.TOTC - df2.c_h2co3 - df2.c_hco3 - df2.c_co3 
+# charge balance 
+df2['charge_balance_residual'] = df2.c_h - df2.c_hco3 - 2*df2.c_co3 - df2.c_oh 
+print(df2) # to see the results in a table 
+print() 
+if np.isclose(max(abs(df2.mass_balance_residual)), 0, atol=1e-9): 
+    print(f"Mass balance is effectively zero") 
+else: 
+    print(f'Mass balance is {max(abs(df2.mass_balance_residual))} which differs by {max(abs(df2.mass_balance_residual)) - 1e-9}') 
+
+print() 
+if np.isclose(max(abs(df2.charge_balance_residual)), 0, atol=1e-9): 
+    print(f"Charge balance is effectively zero") 
+else: 
+    print(f'Charge balance is {max(abs(df2.charge_balance_residual))} which differs by {max(abs(df2.charge_balance_residual)) - 1e-9}') 
+
+
+plt.figure(figsize=(6, 4)) 
+plt.plot(df2.TOTC, df2.pH , 'ro-') 
+plt.xlabel('TOTC [mol/m3]') 
+plt.ylabel('pH value') 
+plt.grid() 
+# plt.savefig('pH_vs_TOTC.png') 
+plt.show() 
+
+plt.figure(figsize=(12, 4)) 
+plt.plot(df2.TOTC, df2.c_h2co3/df2.TOTC * 100, 'o-', label = 'H2CO3') 
+plt.plot(df2.TOTC, df2.c_hco3/df2.TOTC * 100, 'o-', label = 'HCO3') 
+plt.plot(df2.TOTC, df2.c_co3/df2.TOTC * 100, 'o-', label = 'CO3') 
+plt.ylim(-10,110) 
+plt.xlabel('Total carbonate [mol/m3]') 
+plt.ylabel('Species distribution') 
+plt.legend() 
+plt.grid() 
+# plt.savefig('Species_distribution.png') 
+plt.show()
