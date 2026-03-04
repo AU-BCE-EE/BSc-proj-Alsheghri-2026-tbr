@@ -1,0 +1,410 @@
+---
+author: Osman
+title: Speciaition functions
+---
+# Compare the vectorized function with the original loop version
+
+## I will just paste the functions here as import does not work
+``` {python}
+#| echo: false
+print("This code is hidden, but it is the functions from sepciation_model")
+
+import numpy as np
+from scipy.optimize import root_scalar
+
+def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
+    """
+    Calculate carbonate system speciation and pH from total carbonate
+    concentration. This version excludes CO2 (aq), which is assumed
+    to be converted to H2CO3 and HCO3- in kinetically-limited 
+    reactions.
+
+    Author: Osman Alsheghri
+
+    Parameters/Input
+    -------------
+    TOTC  : float
+            Total carbonate concentration (mol/m3) = [H2CO3] + [HCO3^-] + [CO3^2-]
+
+    K_hco3: float
+            Equilibrium constant for H2CO3 ⇌ HCO3^- + H^+
+
+    K_co3 : float
+            Equilibrium constant for H2CO3 ⇌ CO3^2-  + 2H^+
+
+    KW    : float
+            Water dissociation constant 
+
+    c_oh  : concentration of excess OH- (mol/m3)
+
+    Returns
+    ----------
+    Dictionary
+        'c_h2co3' : float - H2CO3 concentration     (mol/m3)
+        'c_hco3'  : float - HCO3^- concentration    (mol/m3)
+        'c_co3'   : float - CO3^2- concentration    (mol/m3)
+        'c_oh'    : float - OH^- concentration      (mol/m3)
+        'c_h'     : float - H^+ concentration       (mol/m3)
+        'pH'      : float - pH value
+    """
+
+    # From the mass action and mass balance expressions we can derive:
+    # HCO3 = K1 * c_h2co3**1 * c_h**-1 
+    # CO3  = K1*K2 * c_h2co3**1 * c_h **-2 
+    # OH   = KW * c_h **-1 
+
+    # Convert mol/m3 to mol/L
+    TOTC = TOTC/1000
+    ex_oh = ex_oh/1000
+
+    # define the stoichiometry matrix
+    #        | H2CO3 |  H+
+    #        --------|----
+    # HCO3-  |  -1   |  1
+    # CO3-2  |  -1   |  2
+    #   OH-  |   0   |  1
+
+    S = np.array([
+        [-1, 1],  # HCO3^-
+        [-1, 2],  # CO3^2-
+        [0,  1]   # OH^-
+    ])
+
+    K = np.array([K_hco3, K_co3, KW])
+
+    def residH(c_h):
+        # denominator for c_h2co3 equation --> denom = 1 + K1/c_h + K1*K2/c_h**2  
+        denom = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0])) # if we did not have the last part
+        # then we would also say that denom depends on OH, it does not.
+        c_h2co3 = TOTC / denom
+        conc = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
+        return c_h - np.sum(conc * S[:,1]) + ex_oh
+
+    # find the concentration of H+
+    c_h = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
+
+    # calculate the concentration of the equilibrium species
+    denom   = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0]))
+    c_h2co3 = TOTC / denom
+    conc    = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1]))
+
+    pH = - np.log10(c_h)
+
+    out = {
+        'c_h2co3': c_h2co3 * 1000,
+        'c_hco3' : conc[0] * 1000,
+        'c_co3'  : conc[1] * 1000,
+        'c_oh'   : conc[2] * 1000,
+        'c_h'    : c_h     * 1000,
+        'pH'     : pH,
+    }
+
+    return out
+
+
+# ========================== Vectorized spec2_matrix function =============================
+from scipy.optimize import root
+def spec2_vector(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
+    
+    """
+    Calculate carbonate system speciation and pH from total carbonate
+    concentration. This version excludes CO2 (aq), which is assumed
+    to be converted to H2CO3 and HCO3- in kinetically-limited 
+    reactions.
+
+    Author: Osman Alsheghri
+
+    Parameters/Input
+    -------------
+    TOTC  : float
+            Total carbonate concentration (mol/m3) = [H2CO3] + [HCO3^-] + [CO3^2-]
+
+    K_hco3: float
+            Equilibrium constant for H2CO3 ⇌ HCO3^- + H^+
+
+    K_co3 : float
+            Equilibrium constant for H2CO3 ⇌ CO3^2-  + 2H^+
+
+    KW    : float
+            Water dissociation constant 
+
+    c_oh  : concentration of excess OH- (mol/m3)
+
+    Returns
+    ----------
+    Dictionary
+        'c_h2co3' : float - H2CO3 concentration     (mol/m3)
+        'c_hco3'  : float - HCO3^- concentration    (mol/m3)
+        'c_co3'   : float - CO3^2- concentration    (mol/m3)
+        'c_oh'    : float - OH^- concentration      (mol/m3)
+        'c_h'     : float - H^+ concentration       (mol/m3)
+        'pH'      : float - pH value
+    """
+
+    # the axis = 0 is important for the directio of the sum
+    # the [None, :] and [:, None] changes the shapes of the arrays 
+    # so the equations are consisten, chat helped here(i could see it myself)
+
+    # Most of the function is still the same. 
+    # Convert mol/m3 to mol/L
+
+    # i started by using np.asarray but chatgpt suggested np.atleas_1d
+    TOTC  = np.atleast_1d(TOTC).astype(float) / 1000
+    ex_oh = np.atleast_1d(ex_oh).astype(float) / 1000
+
+    if ex_oh.size == 1:
+         ex_oh = np.full_like(TOTC,ex_oh) # ensures consisten shape
+
+    S = np.array([
+        [-1, 1],  # HCO3^-
+        [-1, 2],  # CO3^2-
+        [0,  1]   # OH^-
+    ])
+
+    K = np.array([K_hco3, K_co3, KW])
+
+    def residH(c_h_vec):
+         denom = 1.0 + np.sum(
+              K[:, None] *  
+              (c_h_vec[None, :] ** (-S[:, 1][:, None])) *
+              (-S[:, 0][:, None]), axis = 0)
+         
+         c_h2co3 = TOTC / denom
+
+         conc = (
+              K[:, None] * 
+              (c_h2co3[None, :] ** (-S[:, 0][:, None])) * 
+              (c_h_vec[None, :] ** (-S[:, 1][:, None]))
+         )
+         
+         return c_h_vec - np.sum(conc * S[:,1][:, None], axis = 0) + ex_oh
+    # https://docs.scipy.org/doc/scipy/reference/optimize.html Multidimensional root finding
+
+    c_h0 = np.full_like(TOTC, 1 * 10**-7) # initial guess
+    sol = root(residH, c_h0, method = 'hybr')
+
+    # 'success' a Boolean flag indicating if the algorithm exited 
+    # successfully and 'message' which describes the cause of the termination.
+    if not sol.success:
+         raise RuntimeError(f'Root finding failed, error {sol.message}')
+
+    c_h = sol.x
+
+    denom = 1.0 + np.sum(
+        K[:, None] * 
+        (c_h[None, :] ** (-S[:, 1][:, None])) *
+        (-S[:, 0][:, None]), axis = 0)
+    
+    c_h2co3 = TOTC / denom
+    conc = (
+              K[:, None] * 
+              (c_h2co3[None, :] ** (-S[:, 0][:, None])) * 
+              (c_h[None, :] ** (-S[:, 1][:, None]))
+         )
+    pH = - np.log10(c_h)
+
+    out = {
+        'c_h2co3': c_h2co3 * 1000,
+        'c_hco3' : conc[0] * 1000,
+        'c_co3'  : conc[1] * 1000,
+        'c_oh'   : conc[2] * 1000,
+        'c_h'    : c_h     * 1000,
+        'pH'     : pH,
+    }
+    return out
+
+```
+## The spec2_matrix function
+``` {python}
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import importlib
+from time import time
+
+TOTC = np.arange(1e-5, 1e-4 + 1e-5, 1e-5) * 1000         # mol/L * 1000 L/m3 = mol/m3 
+TK = 298                                       # K
+ex_oh = 3e-2
+# equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
+K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
+K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
+KW = 10**(-4.2195 - 2915.16/TK)
+
+start1 = time()
+res = [] 
+for i in range(len(TOTC)):
+    res.append (spec2_matrix(TOTC[i], K_hco3, K_co3, KW, ex_oh))
+end1 = time()
+print(f'run time for the loop version is {end1 - start1}')
+
+# save the result in a dataframe
+df = pd.DataFrame(res)
+df['TOTC'] = TOTC
+df['ex_oh'] = ex_oh
+
+# mass balance
+df['mass_balance_residual'] = df.TOTC - df.c_h2co3 - df.c_hco3 - df.c_co3
+
+# charge balance
+df['charge_balance_residual'] = df.c_h - df.c_hco3 - 2*df.c_co3 - df.c_oh
+
+print(df) # to see the results in a table
+# df.to_csv('spec_model_results.csv', index=False)
+
+print()
+if np.isclose(max(abs(df.mass_balance_residual)), 0, atol=1e-9):
+    print(f"Mass balance is effectively zero")
+else: 
+    print(f'Mass balance is {max(abs(df.mass_balance_residual))} which differs by {max(abs(df.mass_balance_residual)) - 1e-9}')
+print()
+
+
+if np.isclose(max(abs(df.charge_balance_residual)), 0, atol=1e-9):
+    print(f"Charge balance is effectively zero")
+else: 
+    print(f'Charge balance is {max(abs(df.charge_balance_residual))} which differs by {max(abs(df.charge_balance_residual)) - 1e-9}')
+
+# Check the equlibrium constants values
+# Should be, around 6.4, 16.5 and 14 respectively... 
+print()
+print(f"K_hco3 = {K_hco3:.2e} (pKa1 = {-np.log10(K_hco3):.2f})")
+print(f"K_co3  = {K_co3:.2e} (pKa2 = {-np.log10(K_co3):.2f})")
+print(f"KW     = {KW:.2e} (pKW  = {-np.log10(KW):.2f})")
+
+
+plt.figure(figsize=(6, 4))
+
+plt.plot(df.TOTC, df.pH , 'ro-')
+plt.xlabel('TOTC [mol/m3]')
+plt.ylabel('pH value')
+plt.grid()
+# plt.savefig('pH_vs_TOTC.png')
+plt.show()
+
+plt.figure(figsize=(12, 4))
+plt.plot(df.TOTC, df.c_h2co3/df.TOTC * 100, 'o-', label = 'H2CO3')
+plt.plot(df.TOTC, df.c_hco3/df.TOTC * 100, 'o-', label = 'HCO3')
+plt.plot(df.TOTC, df.c_co3/df.TOTC * 100, 'o-', label = 'CO3')
+plt.ylim(-10,110)
+plt.xlabel('Total carbonate [mol/m3]')
+plt.ylabel('Species distribution')
+plt.legend()
+plt.grid()
+# plt.savefig('Species_distribution.png')
+plt.show()
+``` 
+
+
+## The vectorized version
+``` {python}
+# ==================================== test the new vectorized function 
+start2 = time()
+res2 = spec2_vector(TOTC, K_hco3, K_co3, KW, ex_oh)
+end2 = time()
+
+print(f'run time for the vectorized function is {end2 - start2}')
+print()
+print()
+df2 = pd.DataFrame(res2) 
+
+df2['TOTC'] = TOTC 
+
+df2['ex_oh'] = ex_oh 
+
+df2['mass_balance_residual'] = df2.TOTC - df2.c_h2co3 - df2.c_hco3 - df2.c_co3 
+
+# charge balance 
+df2['charge_balance_residual'] = df2.c_h - df2.c_hco3 - 2*df2.c_co3 - df2.c_oh 
+
+print(df2) # to see the results in a table 
+
+print() 
+if np.isclose(max(abs(df2.mass_balance_residual)), 0, atol=1e-9): 
+    print(f"Mass balance is effectively zero") 
+else: 
+    print(f'Mass balance is {max(abs(df2.mass_balance_residual))} which differs by {max(abs(df2.mass_balance_residual)) - 1e-9}') 
+
+print() 
+if np.isclose(max(abs(df2.charge_balance_residual)), 0, atol=1e-9): 
+    print(f"Charge balance is effectively zero") 
+else: 
+    print(f'Charge balance is {max(abs(df2.charge_balance_residual))} which differs by {max(abs(df2.charge_balance_residual)) - 1e-9}') 
+
+
+plt.figure(figsize=(6, 4)) 
+plt.plot(df2.TOTC, df2.pH , 'ro-') 
+plt.xlabel('TOTC [mol/m3]') 
+plt.ylabel('pH value') 
+plt.grid() 
+# plt.savefig('pH_vs_TOTC.png') 
+plt.show() 
+
+plt.figure(figsize=(12, 4)) 
+plt.plot(df2.TOTC, df2.c_h2co3/df2.TOTC * 100, 'o-', label = 'H2CO3') 
+plt.plot(df2.TOTC, df2.c_hco3/df2.TOTC * 100, 'o-', label = 'HCO3') 
+plt.plot(df2.TOTC, df2.c_co3/df2.TOTC * 100, 'o-', label = 'CO3') 
+plt.ylim(-10,110) 
+plt.xlabel('Total carbonate [mol/m3]') 
+plt.ylabel('Species distribution') 
+plt.legend() 
+plt.grid() 
+# plt.savefig('Species_distribution.png') 
+plt.show()
+```
+
+
+
+## Before i edit on the vectorized function i want to test the run time with different array sizes
+### a function to measure runtime 
+```{python}
+def time_measure(func, TOTC, typ):
+    TK = 298                                       # K
+    ex_oh = 3e-2
+    # equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
+    K_hco3 = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
+    K_co3 = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
+    KW = 10**(-4.2195 - 2915.16/TK)
+    if typ == 'loop':
+        start = time()
+        res = []
+        for i in range(len(TOTC)):
+            res.append(func(TOTC[i], K_hco3, K_co3, KW, ex_oh))
+        end = time()
+    elif typ == 'vector':
+        start = time()
+        res = func(TOTC,K_hco3, K_co3, KW, ex_oh)
+        end = time()
+    else: 
+        raise ValueError('typ is not given')
+    run_time = end - start
+    return run_time
+```
+### lets take some cases 
+
+``` {python}
+TOTC_original    = np.arange(1e-5, 1e-4 + 1e-5, 1e-5) * 1000     # len = 10
+TOTC_larger      = np.arange(1e-5, 1e-3 + 1e-5, 1e-5) * 1000     # len = 100
+TOTC_even_larger = np.arange(1e-5, 1e-2 + 1e-5, 1e-5) * 1000  # len = 1000
+
+
+print("Testing the loop version")
+time_loop_10   = time_measure(spec2_matrix,TOTC_original,typ = 'loop')
+time_loop_100  = time_measure(spec2_matrix,TOTC_larger,typ = 'loop')
+time_loop_1000 = time_measure(spec2_matrix,TOTC_even_larger,typ = 'loop')
+
+print("\nTesting the vector version")
+time_vec_10   = time_measure(spec2_vector,TOTC_original,typ = 'loop')
+time_vec_100  = time_measure(spec2_vector,TOTC_larger,typ = 'loop')
+time_vec_1000 = time_measure(spec2_vector,TOTC_even_larger,typ = 'loop')
+
+# Compare
+print("\n" + "="*50)
+print("Speed comparison (vectorized / loop):")
+print(f"10 points:  {time_vec_10/time_loop_10:.2f}x")
+print(f"100 points: {time_vec_100/time_loop_100:.2f}x")
+print(f"1000 points: {time_vec_1000/time_loop_1000:.2f}x")
+```
+
+Oke since the time for the vectorized function is larger, this means that the loop version is fine
+for now?.
