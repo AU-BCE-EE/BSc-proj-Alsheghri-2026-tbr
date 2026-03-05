@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import mod_co2_main as md
+import mods.mod_co2_main as md
 import importlib
 import matplotlib as mpl
 importlib.reload(md)
