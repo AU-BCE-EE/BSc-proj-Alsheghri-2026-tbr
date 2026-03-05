@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import sys
 from scipy.integrate import solve_ivp 
-import speciation_model as sm
-import enhancement_mod as em
+from . import speciation_model as sm
+from . import enhancement_mod as em
 from importlib import reload
 reload(sm)
 reload(em)
