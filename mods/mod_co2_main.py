@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import sys
 from scipy.integrate import solve_ivp 
-import mods.speciation_model as sm
-import mods.enhancement_mod as em
+import speciation_model as sm
+import enhancement_mod as em
 from importlib import reload
 reload(sm)
 reload(em)
@@ -88,7 +88,7 @@ def rates(t, n,
       c_h[i]     = res['c_h']
       pH[i]      = res['pH']
 
-
+#   breakpoint()
    # -----start----------- THis part needs to be fixed after talk with feilberg --------------
    # Caclulate Kga if requested (Mass transfer coefficient enhancement)
    # For ordinary Onda
@@ -271,7 +271,7 @@ def rates(t, n,
 # Model function
 # TBR
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
-          clin_co2, clin_TOTC, cr_co20, cr_TOTC0, Kga, henry, pKa, temp, dens_l, 
+          clin_co2, clin_TOTC, cr_co20, cr_TOTC0, Kga, henry, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
           pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO'):
    """"
@@ -442,7 +442,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    cl_TOTC0 = float(cl_TOTC0)
    cr_co20  = float(cr_co20)
    cr_TOTC0 = float(cr_TOTC0)
-   pKa      = float(pKa)
    temp     = float(temp)
    dens_l   = float(dens_l)
    times    = np.array(times).astype(float)
@@ -455,7 +454,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    Kaw  = 1 / (kh * R * TK)                                     # dimensionless, gas:liq, e.g., g/L / g/L or g/m3 per g/m3
    
    # Temperature dependent constants
-   KW        = 10**(-4.2195 - 2915.16/TK)  * 10**6                                                              # Water dissociation constant 
+   KW        = 10**(-4.2195 - 2915.16/TK)                                                             # Water dissociation constant 
    rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)   # density of water  [kg/m3]
    K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                           # equlibrium constant for CO2 + H2O -> HCO3^- + H^+ [mol/m3]
    K4        = K2/ (KW * 10**6)                                                                                  # equlibrium constant for CO2 + OH^- --> HCO3^-
