@@ -6,8 +6,6 @@ from scipy.integrate import solve_ivp
 from . import speciation_model as sm
 from . import enhancement_mod as em
 from importlib import reload
-reload(sm)
-reload(em)
           
 # molar masses for all species 
 M_co2   = 44.01                 # g/mol
