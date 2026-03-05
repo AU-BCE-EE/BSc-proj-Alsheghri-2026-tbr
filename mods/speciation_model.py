@@ -69,7 +69,7 @@ def spec(TOTC,K_hco3,K_co3,KW):
 # Maybe like this? where we use the TOTC equation to isolate c_h2co3, then 
 # we plug it in the charge balance equation, this makes everything depend only of c_h??
 # I actually did exactly what has been done in Sasha's R model to handle algebraic c_h2co3 :) 
-def spec2(TOTC,K_hco3,K_co3,KW):
+def spec2(TOTC, K_hco3, K_co3, KW, ex_oh):
     """
     Calculate carbonate system speciation and pH from total carbonate
     concentration
@@ -100,13 +100,16 @@ def spec2(TOTC,K_hco3,K_co3,KW):
         'c_h'     : float - H^+ concentration       (mol/m3)
         'pH'      : float - pH value
     """
+    TOTC = TOTC/1000
+    ex_oh = ex_oh/1000
     def residH(c_h):
             c_h2co3 = TOTC/(1 + K_hco3/c_h + (K_co3*K_hco3)/c_h**2)
             c_hco3  = (K_hco3*c_h2co3)/c_h
             c_co3   = (K_hco3*K_co3*c_h2co3)/c_h**2
             c_oh    = KW/c_h
-            return c_h -  c_hco3 - 2*c_co3-c_oh
-    c_h     = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
+            # breakpoint()
+            return c_h -  c_hco3 - 2*c_co3-c_oh + ex_oh
+    c_h     = root_scalar(residH, bracket=[1E-15, 1], method='brentq').root
     c_h2co3 = TOTC/(1 + K_hco3/c_h + (K_co3*K_hco3)/c_h**2)
     c_hco3  = (K_hco3*c_h2co3)/c_h
     c_co3   = (K_hco3*K_co3*c_h2co3)/c_h**2
@@ -199,10 +202,19 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
         # then we would also say that denom depends on OH, it does not.
         c_h2co3 = TOTC / denom
         conc = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
+        # breakpoint()
         return c_h - np.sum(conc * S[:,1]) + ex_oh
 
     # find the concentration of H+
-    c_h = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
+    
+    # Adaptive bracket: low=TOTC/1000, high=1
+    low = max(1e-14, TOTC/1000)
+    high = max(1e-6, 1.0)
+    try:
+        c_h = root_scalar(residH, bracket=[low, high], method='brentq').root
+    except:
+        c_h = 1e-14  # fallback pure water + OH
+    # c_h = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
 
     # calculate the concentration of the equilibrium species
     denom   = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0]))
