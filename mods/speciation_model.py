@@ -208,8 +208,8 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     # find the concentration of H+
     
     # Adaptive bracket: low=TOTC/1000, high=1
-    low = max(1e-14, TOTC/1000)
-    high = max(1e-6, 1.0)
+    low = 1e-14
+    high = 1e-1
     try:
         c_h = root_scalar(residH, bracket=[low, high], method='brentq').root
     except:
