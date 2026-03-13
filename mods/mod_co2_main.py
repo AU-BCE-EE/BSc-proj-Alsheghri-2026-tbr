@@ -88,16 +88,27 @@ def rates(t, n,
 
 #   breakpoint()
    # -----start----------- THis part needs to be fixed after talk with feilberg --------------
+   # here i calculate Daw outside the Kga function, because before this 
+   # Daw was only calculted of Kga == 'onda' but sometimes we want to test with Kga = float
+
+  R        = 0.083144        # # Gas constant (L bar / K-mol)
+  TK       = temp + 273.15   # Temp in Kelvin
+
+  kh       = henry[0] * np.exp(henry[1] * (1/TK - 1/298.15)) # mol/kg-bar as liq:gas   # vant hoff equation for calculating new henry constant
+  kh       = kh * dens_l / 1000                              # mol/L-bar
+
+  Kaw      = 1 / (kh * R * TK)                                # Neutral air-water distribution 
+  Daw      = Kaw                                              # air water distribution 
+
    # Caclulate Kga if requested (Mass transfer coefficient enhancement)
-   # For ordinary Onda
-  if type(Kga) is str and Kga.lower() == 'onda':
+   # For ordinary Onda  
+  if isinstance(Kga,str) and Kga.lower() == 'onda':
       # Hard-wired constants
       g      = 9.81                   # m / sec^2
       Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
       Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
       sigm_c = 0.75                   # critical surface tension
       sigm_l = 0.0073                 # surface tension
-      R      = 0.083144               # Gas constant (L bar / K-mol)
       mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
       dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
 
@@ -106,9 +117,6 @@ def rates(t, n,
           dp_emp = 2.0
       else:
           dp_emp = 5.23
-
-      # temp in kelvin
-      TK = temp + 273.15
 
       dens_g = pres * mw_g / (R * TK) # g/L = kg/m3     # density of gas 
       visc_g = 9.1E-8 * TK - 1.16E-5                    # empirical relation for gas viscosity vs TK
@@ -128,14 +136,7 @@ def rates(t, n,
           * (visc_g / (dens_g * Dg))**(1 / 3) * (ssa * dp)**-2 * ssa * Dg
       
       #liquid phase resistance
-      kl = 0.0051 * (v_l * dens_l / (ae * visc_l))**(2/3) * (visc_l / (dens_l * Dliq))**(-0.5) * (ssa * dp)**0.4 * (dens_l / (visc_l * g))**(-1/3)
-
-     
-      kh  = henry[0] * np.exp(henry[1] * (1/TK - 1/298.15))    # mol/kg-bar as liq:gas   # vant hoff equation for calculating new henry constant
-      kh  = kh * dens_l / 1000                                 # mol/L-bar
-      Kaw = 1 / (kh * R * TK)                                  # Neutral air-water distribution                                                                                                                                         
-
-      Daw = Kaw                                                # air water distribution                          
+      kl = 0.0051 * (v_l * dens_l / (ae * visc_l))**(2/3) * (visc_l / (dens_l * Dliq))**(-0.5) * (ssa * dp)**0.4 * (dens_l / (visc_l * g))**(-1/3)                         
     
       #Enhancement factor for chemical reaction
       # interfacial co2 concentration
@@ -156,7 +157,7 @@ def rates(t, n,
       else:
           E = 1
 
-      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k1 * por_l) # reference p181 in Seader et al book (resistance in serie two film)
+      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k3 * np.maximum(c_oh,1e-10) * por_l) # reference p181 in Seader et al book (resistance in serie two film)
       Kga  = 1 / Rtot # overall mass transfer coefficient
     #   breakpoint()
 
@@ -234,8 +235,7 @@ def rates(t, n,
   r1 = k1 * c_co2 - k2 * c_h2co3
   r2 = k3 * c_co2 * c_oh - k4 * c_hco3
 
-  rxn_co2   = r1 + r2
-  rxn_TOTC  = r1 + r2      
+  rxn_co2   = r1 + r2     
 
   if not counter:
      cvec_co2 = np.insert(c_co2, 0, clin_co2)
@@ -245,7 +245,7 @@ def rates(t, n,
 
   advec_co2 = - v_l_eff * np.diff(cvec_co2)             # advection for CO2 in the liquid
   # mol/s   mol/s      mol/s  mol/m3-s * m3
-  dm_co2 = advec_co2 + g2l + rxn_co2 * vol_liq          # Rate of change of CO2 in the liquid 
+  dm_co2 = advec_co2 + g2l - rxn_co2 * vol_liq          # Rate of change of CO2 in the liquid 
   
   # TOTC in the liquid phase
   if not counter:
@@ -255,7 +255,7 @@ def rates(t, n,
      cvec_TOTC = np.insert(c_TOTC, nc, clin_TOTC)
 
   advec_TOTC = - v_l_eff * np.diff(cvec_TOTC)           # advection for TOTC in the liquid
-  dm_TOTC    = advec_TOTC  + rxn_TOTC * vol_liq         # Rate of change of TOTC in the liquid 
+  dm_TOTC    = advec_TOTC  + rxn_co2 * vol_liq         # Rate of change of TOTC in the liquid 
 
  # Combine gas and liquid and reservoir
   dm = np.concatenate([dmg, dm_co2, dm_TOTC, dmcr])               
@@ -455,7 +455,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    KW        = 10**(-4.2195 - 2915.16/TK)                                                             # Water dissociation constant 
    rho_water = 1000 * (1 - ((temp + 288.9414) / (508929.2 * (temp + 68.12963))) * (temp - 3.9863)**2)   # density of water  [kg/m3]
    K2        = np.exp(-12092.1/TK -36.786 * np.log(TK) + 235.482) * rho_water                           # equlibrium constant for CO2 + H2O -> HCO3^- + H^+ [mol/m3]
-   K4        = K2/ (KW * 10**6)                                                                                  # equlibrium constant for CO2 + OH^- --> HCO3^-
+   K4        = K2/ (KW * 1e6)                                                                                  # equlibrium constant for CO2 + OH^- --> HCO3^-
    # equilibrium constants from https://github.com/sashahafner/NH3-RTM kinSpec()
    K_hco3    = 10**(-353.5305 - 0.06092*TK + 21834.37/TK + 126.8339 * np.log10(TK) - 1684915/TK**2)
    K_co3     = 10 **(-461.4176 - 0.093448*TK + 26986.16/TK + 165.7595*np.log10(TK) - 2248629/TK**2)
@@ -486,6 +486,13 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    cgin     = gpm3_to_molpm3(cgin     , M_co2)
    cl_co20  = gpm3_to_molpm3(cl_co20  , M_co2)
    clin_co2 = gpm3_to_molpm3(clin_co2 , M_co2)
+
+
+   #============================== mol balance coming in ===============================
+   Q_g = v_g * 1     # m/s * 1m^2 = m3/s
+   m_gin = Q_g * cgin  # m3/s * mol/m3  = mol/s
+
+
 
 
 
@@ -535,6 +542,17 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    ccl_co2t  = ncl_co2t / np.transpose(np.tile(vol_liq, (ncl_co2t.shape[1], 1)))
    # TOTC
    ccl_TOTCt = ncl_TOTCt / np.transpose(np.tile(vol_liq, (ncl_TOTCt.shape[1], 1)))
+   
+   # ====== equilibrium conc.=======
+   ccl_co2t_eq = ccgt / Kaw
+   # ================== mol balance out ================
+   m_gout = Q_g * ccgt[-1,:]
+   
+   Q_l    = v_l * 1    # m3/s
+   m_lout = Q_l * (ccl_co2t[-1,:] + ccl_TOTCt[-1,:])
+
+   m_tout = m_gout + m_lout 
+
 
    # Total
   #  cctt = nctot / np.transpose(np.tile(vol_tot, (nctot.shape[1], 1)))
@@ -546,7 +564,14 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    for c in range(ccl_TOTCt.shape[0]):
        for t in range(ccl_TOTCt.shape[1]):
            res_out = sm.spec2_matrix(ccl_TOTCt[c,t], K_hco3, K_co3, KW, ex_oh)
-           pH_profile[c,t] = res_out['pH'] 
+           pH_profile[c,t] = res_out['pH']
+    
+   # ===== TOTC equilibrium ==== 
+   c_h_profile  = 10**(-pH_profile) * 1000
+   c_h2co3_eq   = k1/k2 * ccl_co2t_eq
+   c_hco3_eq    = K_hco3 * 1000 * c_h2co3_eq /c_h_profile
+   c_co3_eq     = K_co3  * 1e6 * c_h2co3_eq/c_h_profile**2
+   TOTC_eq      = c_h2co3_eq + c_hco3_eq  + c_co3_eq
 
    # Return results as a dictionary
    return {'gas_conc'    : molpm3_to_gpm3(ccgt,M_co2),
@@ -556,4 +581,10 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
           'cell_pos'     : x,
           'time'         : times,
           'inputs'       : args_in, 
+          'm_gin'        : m_gin,
+          'm_gout'       : m_gout,
+          'm_lout'       : m_lout,
+          'm_tout'       : m_tout,
+          'eq_conc'      : molpm3_to_gpm3(ccl_co2t_eq, M_co2),
+          'TOTC_eq'      : TOTC_eq,  
           'pars'         : {'gas_rt': rt_gas, 'liq_rt': rt_liq, 'Kga': Kga, 'Kaw': Kaw, 'ae':ae,'kg':kg,'kl':kl}}

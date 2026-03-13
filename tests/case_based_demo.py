@@ -7,7 +7,7 @@ importlib.reload(md)
 
 # parameters: 
 L     = 2                    # m (half-bed used for evaluation)
-por_g = 0.86                 # estimated (0.91 total - 0.05 liquid) # i dont know what this is maybe from void fraciton
+por_g = 0.91                 # estimated (0.91 total - 0.05 liquid) # i dont know what this is maybe from void fraciton
 por_l = 0.05                 # typical trickle-bed liquid holdup    # i dont know what this is
 ssa   = 260                  # m2/m3 (plastic Pall rings) (from the thesis)
 
@@ -15,18 +15,18 @@ D_real = 0.19                   # m (from thesis)
 A_real = np.pi * D_real**2 / 4  # 0.0284 m2  (from thesis)
 
 # ---- Experimental flow case ----
-Q_g_Lmin = 40.0            # gas flow [L/min] (from theis)
-Q_l_Lmin = 0.1325          # liquid flow [L/min] (from thesis)
+# Q_g_Lmin = 40.0            # gas flow [L/min] (from theis)
+# Q_l_Lmin = 0.1325          # liquid flow [L/min] (from thesis)
 
-# Convert to m3/s
-Q_g = Q_g_Lmin / 1000 / 60
-Q_l = Q_l_Lmin / 1000 / 60
+# # Convert to m3/s
+# Q_g = Q_g_Lmin / 1000 / 60
+# Q_l = Q_l_Lmin / 1000 / 60
 
 # Convert to superficial velocities (1 m2 model expects this)
-v_g = 0.5   # m/s  (from Feilberg)
-v_l = 1e-4  # m/s
+v_g = 0.03   # m/s  (from Feilberg) # before 0.5
+v_l = 1e-3  # m/s                   # before 1e-4
 
-nc = 20
+nc = 10
 
 # gas phase 
 cg0 = 0.0
@@ -41,7 +41,7 @@ cr_TOTC0  = 0.0
 v_res = 1 / 1000 # m3
 
 # pH
-pH    = 11
+pH    = 13
 ex_oh = 10**(-(14-pH))*1000 # mol/m3
 
 henry = [3.3e-2, 2400]      # NIST-based
@@ -53,7 +53,7 @@ pres   = 1.0               # bar
 
 
 Kga = 'onda'
-times = np.linspace(0, 600, 200) # 10 min 
+times = np.linspace(0, 1200, 5) # 
 
 
 M_co2 = 44.009  # g/mol 
@@ -65,30 +65,53 @@ R     = 8.314 * 10**-5   # m3 * bar / K-mol
 frac_biogas = 0.45    # fraction of co2 in the gas 
 cgin_biogas = pres / ((temp + 273.15) * R) * frac_biogas * M_co2 
 
-# results_biogas = md.tfmod(
-#     L, por_g, por_l, v_g, v_l, nc,
-#     cg0, cl_co20, cl_TOTC0,
-#     cgin_biogas, ex_oh,
-#     clin_co2, clin_TOTC,
-#     cr_co20, cr_TOTC0,
-#     Kga, henry, temp, dens_l,
-#     times,
-#     kg='onda',
-#     kl='onda',
-#     ae='onda',
-#     v_res=v_res,          # now > 0,
-#     pres=pres,
-#     ssa=ssa,
-#     typ='PR',
-#     counter=False,         # counter-current gas–liquid
-#     recirc=False,          # enable recycle
-#     enh_method='PFO'
-# )
+results_biogas = md.tfmod(
+    L, por_g, por_l, v_g, v_l, nc,
+    cg0, cl_co20, cl_TOTC0,
+    cgin_biogas, ex_oh,
+    clin_co2, clin_TOTC,
+    cr_co20, cr_TOTC0,
+    Kga, henry, temp, dens_l,
+    times,
+    kg='onda',
+    kl='onda',
+    ae='onda',
+    v_res=v_res,          # now > 0,
+    pres=pres,
+    ssa=ssa,
+    typ='PR',
+    counter=False,         # counter-current gas–liquid
+    recirc=False,          # enable recycle
+    enh_method='PFO'
+)
 
 
-# ==================== Case 2 cement production 14% - 30% ==========================
-frac_cement = 0.20    # fraction of co2 in the gas 
-cgin_cement = pres / ((temp + 273.15) * R) * frac_cement * M_co2 
+
+m_gin  = results_biogas['m_gin']
+m_gout = results_biogas['m_gout']
+m_lout = results_biogas['m_lout']
+m_tout = results_biogas['m_tout']
+
+print("=" * 10)
+print(f'Gas in: {m_gin}\n Gas out: {m_gout}\n liquid out: {m_lout}\n total: {m_tout}')
+print(f'Balance: {m_tout - m_gin}')
+
+print(f'actual conc. {results_biogas['co2_liq_conc']}')
+print(f'equilibrium con. {results_biogas['eq_conc']}')
+
+
+TOTC_actual = results_biogas['TOTC_liq_conc']
+TOTC_eq     = results_biogas['TOTC_eq']
+
+print("\n ========================== \n")
+print(f'TOTC_liquid acutal = {TOTC_actual}')
+print(f'TOTC_equilirbium {TOTC_eq}')
+
+print(f'pH profile {results_biogas['pH_profile']}')
+
+# # ==================== Case 2 cement production 14% - 30% ==========================
+# frac_cement = 0.20    # fraction of co2 in the gas 
+# cgin_cement = pres / ((temp + 273.15) * R) * frac_cement * M_co2 
 
 # results_cement = md.tfmod(
 #     L, por_g, por_l, v_g, v_l, nc,
@@ -110,32 +133,32 @@ cgin_cement = pres / ((temp + 273.15) * R) * frac_cement * M_co2
 #     enh_method='PFO'
 # )
 
-# ==================== Case 3 low concnetration 1% - 10% ==========================
+# # ==================== Case 3 low concnetration 1% - 10% ==========================
 
-frac_low = 0.05    # fraction of co2 in the gas 
-cgin_low = pres / ((temp + 273.15) * R) * frac_low * M_co2 
+# frac_low = 0.05    # fraction of co2 in the gas 
+# cgin_low = pres / ((temp + 273.15) * R) * frac_low * M_co2 
 
-results_low = md.tfmod(
-    L, por_g, por_l, v_g, v_l, nc,
-    cg0, cl_co20, cl_TOTC0,
-    cgin_low, ex_oh,
-    clin_co2, clin_TOTC,
-    cr_co20, cr_TOTC0,
-    Kga, henry, temp, dens_l,
-    times,
-    kg='onda',
-    kl='onda',
-    ae='onda',
-    v_res=v_res,          # now > 0, activates reservoir
-    pres=pres,
-    ssa=ssa,
-    typ='PR',
-    counter=False,         # counter-current gas–liquid
-    recirc=False,          # enable recycle
-    enh_method='PFO'
-)
+# results_low = md.tfmod(
+#     L, por_g, por_l, v_g, v_l, nc,
+#     cg0, cl_co20, cl_TOTC0,
+#     cgin_low, ex_oh,
+#     clin_co2, clin_TOTC,
+#     cr_co20, cr_TOTC0,
+#     Kga, henry, temp, dens_l,
+#     times,
+#     kg='onda',
+#     kl='onda',
+#     ae='onda',
+#     v_res=v_res,          # now > 0, activates reservoir
+#     pres=pres,
+#     ssa=ssa,
+#     typ='PR',
+#     counter=False,         # counter-current gas–liquid
+#     recirc=False,          # enable recycle
+#     enh_method='PFO'
+# )
 
-# ======================= resutl processing ============================ 
+# # ======================= resutl processing ============================ 
 
 def result_processing(res,cgin,label):
     gas = res[  'gas_conc'   ]
@@ -176,17 +199,19 @@ def result_processing(res,cgin,label):
     mpl.rcParams['ytick.labelsize'] = 11
     mpl.rcParams['legend.fontsize'] = 11    
 
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(12, 5))
     plt.subplot(1,3,1)
     plt.title('gas conc. vs position')
     plt.plot(x, gas[:,-1], 'b-', linewidth = 1.8) 
     plt.ylabel('gas conc g/m3')
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
     plt.xlabel('position')
     plt.grid()
 
     plt.subplot(1,3,2)
     plt.title('liq conc. vs position')
     plt.plot(x, liq[:,-1], 'g-', linewidth = 1.8)
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
     plt.ylabel('liq conc g/m3')
     plt.xlabel('position')
     plt.grid()
@@ -194,6 +219,7 @@ def result_processing(res,cgin,label):
     plt.subplot(1,3,3)
     plt.title('pH vs position')
     plt.plot(x, pH[:,-1], 'r-', linewidth = 1.8)
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
     plt.ylabel('pH value')
     plt.xlabel('position')
     plt.grid()
@@ -201,11 +227,33 @@ def result_processing(res,cgin,label):
     plt.tight_layout()
     plt.show()
 
-# biogas
-# result_processing(results_biogas, cgin_biogas, 'Biogas')
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1,3,1)
+    plt.title('Gas concentraion at the outlet vs time')
+    plt.plot(t, gas[-1,:])
+    plt.ylabel('conc[g/m3]')
+    plt.xlabel('t[s]')
+    
+    plt.subplot(1,3,2)
+    plt.title('liquid concentraion at the outlet vs time')
+    plt.plot(t,liq[-1,:])
+    plt.ylabel('conc[g/m3]')
+    plt.xlabel('t[s]')
 
-# # cement 
+    plt.subplot(1,3,3)
+    plt.title('pH at the outlet vs time')
+    plt.plot(t, pH[-1,:])
+    plt.ylabel('pH')
+    plt.xlabel('time[s]')
+
+    plt.tight_layout()
+    plt.show()
+
+# biogas
+result_processing(results_biogas, cgin_biogas, 'Biogas')
+
+# # # cement 
 # result_processing(results_cement,cgin_cement, 'Cement')
 
-# low conc.
-result_processing(results_low, cgin_low, 'Low conc.')
+# # low conc.
+# result_processing(results_low, cgin_low, 'Low conc.')
