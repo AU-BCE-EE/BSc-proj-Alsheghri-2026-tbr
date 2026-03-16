@@ -196,44 +196,39 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
 
     K = np.array([K_hco3, K_co3, KW])
 
-    def residH(c_h):
-        # denominator for c_h2co3 equation --> denom = 1 + K1/c_h + K1*K2/c_h**2  
-        denom = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0])) # if we did not have the last part
+    def residH_log(log10_ch):
+        c_h     = 10.0**log10_ch
+
+        # denominator for c_h2co3 equation --> denom = 1 + K1/c_h + K1*K2/c_h**2 
+        denom   = 1.0 + np.sum(K * (c_h**(-S[:,1])) * (-S[:,0])) # if we did not have the last part
         # then we would also say that denom depends on OH, it does not.
         c_h2co3 = TOTC / denom
-        conc = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
-        # breakpoint()
+        conc    = K * (c_h2co3**(-S[:,0])) * (c_h**(-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
         return c_h - np.sum(conc * S[:,1]) + ex_oh
-
-    # find the concentration of H+
-    
-    # Adaptive bracket: low=TOTC/1000, high=1
-    low = 1e-14
-    high = 1e-1
+    # Bracket is [-14, -1] which spans pH 1 to pH 14 
     try:
-        c_h = root_scalar(residH, bracket=[low, high], method='brentq').root
-    except:
-        c_h = 1e-14  # fallback pure water + OH
-    # c_h = root_scalar(residH, bracket=[1E-14, 1], method='brentq').root
+        log_ch = root_scalar(residH_log,
+                             bracket=[-14, -1],
+                             method='brentq').root
+        c_h = 10.0**log_ch
+    except Exception:
+        c_h = 1e-14   # pure water at pH 14
 
     # calculate the concentration of the equilibrium species
-    denom   = 1 + np.sum(K * (c_h**(-S[:,1])) * (- S[:,0]))
+    denom   = 1.0 + np.sum(K * (c_h**(-S[:,1])) * (-S[:,0]))
     c_h2co3 = TOTC / denom
-    conc    = K * (c_h2co3 ** (-S[:,0])) * (c_h ** (-S[:,1]))
+    conc    = K * (c_h2co3**(-S[:,0])) * (c_h**(-S[:,1]))
+    pH = -np.log10(c_h)
 
-    pH = - np.log10(c_h)
-
-    out = {
-        'c_h2co3': c_h2co3 * 1000,
-        'c_hco3' : conc[0] * 1000,
-        'c_co3'  : conc[1] * 1000,
-        'c_oh'   : conc[2] * 1000,
-        'c_h'    : c_h     * 1000,
-        'pH'     : pH,
+    # Convert all outputs back from mol/L → mol/m³
+    return {
+        'c_h2co3' : c_h2co3  * 1000,
+        'c_hco3'  : conc[0]  * 1000,
+        'c_co3'   : conc[1]  * 1000,
+        'c_oh'    : conc[2]  * 1000,
+        'c_h'     : c_h      * 1000,
+        'pH'      : pH,
     }
-
-    return out
-
 
 # ========================== Vectorized spec2_matrix function =============================
 # turns out this is slower than the loop version......
