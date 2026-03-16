@@ -573,6 +573,10 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    c_co3_eq     = K_co3  * 1e6 * c_h2co3_eq/c_h_profile**2
    TOTC_eq      = c_h2co3_eq + c_hco3_eq  + c_co3_eq
 
+
+   # OH profile
+   c_oh_prof = KW/(c_h_profile/1000) * 1000
+
    # Return results as a dictionary
    return {'gas_conc'    : molpm3_to_gpm3(ccgt,M_co2),
           'co2_liq_conc' : molpm3_to_gpm3(ccl_co2t,M_co2),
@@ -586,5 +590,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
           'm_lout'       : m_lout,
           'm_tout'       : m_tout,
           'eq_conc'      : molpm3_to_gpm3(ccl_co2t_eq, M_co2),
-          'TOTC_eq'      : TOTC_eq,  
+          'TOTC_eq'      : TOTC_eq,
+          'c_oh'         : c_oh_prof,
           'pars'         : {'gas_rt': rt_gas, 'liq_rt': rt_liq, 'Kga': Kga, 'Kaw': Kaw, 'ae':ae,'kg':kg,'kl':kl}}

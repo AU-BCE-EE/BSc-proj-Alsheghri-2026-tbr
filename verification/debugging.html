@@ -172,7 +172,7 @@ window.Quarto = {
 <section id="equilibrium" class="level1">
 <h1>Equilibrium</h1>
 <p>The equilibrium test for co2</p>
-<div id="8b8f2ee9" class="cell" data-execution_count="1">
+<div id="55610341" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>actual conc. [[  <span class="fl">0.</span>         <span class="fl">651.46229675</span> <span class="fl">651.46229675</span> <span class="fl">651.46229675</span> <span class="fl">651.46229675</span>]</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">651.49070649</span> <span class="fl">651.49070649</span> <span class="fl">651.49070649</span> <span class="fl">651.49070649</span>]</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">651.49070856</span> <span class="fl">651.49070856</span> <span class="fl">651.49070856</span> <span class="fl">651.49070856</span>]</span>
@@ -197,7 +197,7 @@ window.Quarto = {
 </div>
 <p>Since the equlibrium value is the same as the equlibrium value, what does this really mean. This would mean something in the direction of that there is no mass transfer?</p>
 <p>The equlibrium test that Sasha talked about for TOTC</p>
-<div id="7ed3c0ef" class="cell" data-execution_count="2">
+<div id="1bb009b1" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>c_h_profile  <span class="op">=</span> <span class="dv">10</span><span class="op">**</span>(<span class="op">-</span>pH_profile) <span class="op">*</span> <span class="dv">1000</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>c_h2co3_eq   <span class="op">=</span> k1<span class="op">/</span>k2 <span class="op">*</span> ccl_co2t_eq</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>c_hco3_eq    <span class="op">=</span> K_hco3 <span class="op">*</span> <span class="dv">1000</span> <span class="op">*</span> c_h2co3_eq <span class="op">/</span>c_h_profile</span>
@@ -227,10 +227,10 @@ window.Quarto = {
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.</span>         <span class="fl">1.03305605</span> <span class="fl">1.03305604</span> <span class="fl">1.03305605</span> <span class="fl">1.03305605</span>]</span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.</span>         <span class="fl">1.03305609</span> <span class="fl">1.03305604</span> <span class="fl">1.03305603</span> <span class="fl">1.03305605</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>So this means that the problem is in the liquids capacity to absorp co2?? So the system reaches equilibrium very fast? no further absorption? Improving Kga would not affect the mass transfer thats also what we say when Kga was set to 10 instead of 0.02.</p>
+<p>So this means that the problem is in the liquids capacity to absorp co2?? So the system reaches equilibrium very fast? no further absorption? Improving Kga would not affect the mass transfer thats also what we saw when Kga was set to 10 instead of 0.02.</p>
 <section id="raise-the-ph-from-11-to-13" class="level2">
 <h2 class="anchored" data-anchor-id="raise-the-ph-from-11-to-13">Raise the pH from 11 to 13</h2>
-<div id="38f7a037" class="cell" data-execution_count="3">
+<div id="0f991db4" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>actual conc. [[  <span class="fl">0.</span>         <span class="fl">132.26491879</span> <span class="fl">132.264919</span>   <span class="fl">132.264919</span>   <span class="fl">132.264919</span>  ]</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">125.64558941</span> <span class="fl">125.64558398</span> <span class="fl">125.64558398</span> <span class="fl">125.64558398</span>]</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">220.69753359</span> <span class="fl">221.82370633</span> <span class="fl">221.8305647</span>  <span class="fl">221.83060824</span>]</span>
@@ -288,7 +288,7 @@ window.Quarto = {
 </section>
 <section id="increase-the-liquid-velocity-and-decrease-the-gas-velocity." class="level2">
 <h2 class="anchored" data-anchor-id="increase-the-liquid-velocity-and-decrease-the-gas-velocity.">increase the liquid velocity and decrease the gas velocity.</h2>
-<div id="e85d6fde" class="cell" data-execution_count="4">
+<div id="03f049db" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>actual conc. [[  <span class="fl">0.</span>          <span class="fl">46.4757479</span>   <span class="fl">46.4757479</span>   <span class="fl">46.4757479</span>   <span class="fl">46.4757479</span> ]</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>          <span class="fl">83.48963413</span>  <span class="fl">83.48963413</span>  <span class="fl">83.48963413</span>  <span class="fl">83.48963413</span>]</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">103.30207864</span> <span class="fl">103.30207864</span> <span class="fl">103.30207864</span> <span class="fl">103.30207864</span>]</span>
@@ -342,6 +342,145 @@ window.Quarto = {
 <span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  <span class="fl">4.06475963e+02</span>]</span>
 <span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">3.39836390e+02</span> <span class="fl">3.39853447e+02</span> <span class="fl">3.39941776e+02</span></span>
 <span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  <span class="fl">3.39857275e+02</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>By incresing the pH and changing the velocities we can see that the eq values now are much larger than the actual values, this means the system has not reached the thermodynamical limit yet.</p>
+</section>
+<section id="the-oh-profile" class="level2">
+<h2 class="anchored" data-anchor-id="the-oh-profile">the OH profile:</h2>
+<div id="93313bb8" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>[[<span class="fl">1.00000000e+02</span> <span class="fl">6.35076190e-01</span> <span class="fl">6.35076190e-01</span> <span class="fl">6.35076190e-01</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fl">6.35076190e-01</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">1.07848982e-01</span> <span class="fl">1.07848982e-01</span> <span class="fl">1.07848982e-01</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.07848982e-01</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">4.62257783e-02</span> <span class="fl">4.62257783e-02</span> <span class="fl">4.62257783e-02</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fl">4.62257783e-02</span>]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">2.31592939e-02</span> <span class="fl">2.31592940e-02</span> <span class="fl">2.31592940e-02</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.31592940e-02</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">1.18324197e-02</span> <span class="fl">1.18324197e-02</span> <span class="fl">1.18324197e-02</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.18324197e-02</span>]</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">5.72273015e-03</span> <span class="fl">5.72273028e-03</span> <span class="fl">5.72273031e-03</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fl">5.72273030e-03</span>]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">2.48863863e-03</span> <span class="fl">2.48863886e-03</span> <span class="fl">2.48863890e-03</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.48863889e-03</span>]</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">1.11130451e-03</span> <span class="fl">1.11130481e-03</span> <span class="fl">1.11130486e-03</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.11130484e-03</span>]</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">7.14388337e-04</span> <span class="fl">7.14388855e-04</span> <span class="fl">7.14388901e-04</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fl">7.14388890e-04</span>]</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a> [<span class="fl">1.00000000e+02</span> <span class="fl">5.98216514e-04</span> <span class="fl">5.98217198e-04</span> <span class="fl">5.98214920e-04</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fl">5.98215704e-04</span>]]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The OH concnetration drops very fast at the beginning <span class="math inline">\(c_{oh} = 100\)</span> at next time step <span class="math inline">\(c_{oh} = 0.63\)</span> this means that most of OH is consumed already.</p>
+</section>
+<section id="incrase-ph-from-13-to-13.7" class="level2">
+<h2 class="anchored" data-anchor-id="incrase-ph-from-13-to-13.7">incrase pH from 13 to 13.7</h2>
+<div id="e3c065fc" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">==========</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Gas <span class="kw">in</span>: <span class="fl">0.5446017925040897</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a> Gas out: [<span class="fl">0.</span>         <span class="fl">0.16891998</span> <span class="fl">0.1689201</span>  <span class="fl">0.1689201</span>  <span class="fl">0.1689201</span> ]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a> liquid out: [<span class="fl">0.</span>         <span class="fl">0.375681</span>   <span class="fl">0.37568169</span> <span class="fl">0.3756817</span>  <span class="fl">0.3756817</span> ]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a> total: [<span class="fl">0.</span>         <span class="fl">0.54460098</span> <span class="fl">0.54460179</span> <span class="fl">0.54460179</span> <span class="fl">0.54460179</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>Balance: [<span class="op">-</span><span class="fl">5.44601793e-01</span> <span class="op">-</span><span class="fl">8.12018663e-07</span> <span class="op">-</span><span class="fl">2.47788667e-09</span>  <span class="fl">5.85816951e-10</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a> <span class="op">-</span><span class="fl">1.28124289e-10</span>]</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>actual conc. [[ <span class="fl">0.</span>          <span class="fl">5.87807047</span>  <span class="fl">5.87807047</span>  <span class="fl">5.87807047</span>  <span class="fl">5.87807047</span>]</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">22.67211464</span> <span class="fl">22.67211464</span> <span class="fl">22.67211464</span> <span class="fl">22.67211464</span>]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">27.81786344</span> <span class="fl">27.81786344</span> <span class="fl">27.81786344</span> <span class="fl">27.81786344</span>]</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">30.12209634</span> <span class="fl">30.12209636</span> <span class="fl">30.12209636</span> <span class="fl">30.12209636</span>]</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">31.36958137</span> <span class="fl">31.36958149</span> <span class="fl">31.36958149</span> <span class="fl">31.36958149</span>]</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">32.10394665</span> <span class="fl">32.10394741</span> <span class="fl">32.10394741</span> <span class="fl">32.10394741</span>]</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">32.55370248</span> <span class="fl">32.55370595</span> <span class="fl">32.55370597</span> <span class="fl">32.55370596</span>]</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">32.83353664</span> <span class="fl">32.83354606</span> <span class="fl">32.83354612</span> <span class="fl">32.83354611</span>]</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">33.00775268</span> <span class="fl">33.00766659</span> <span class="fl">33.00766676</span> <span class="fl">33.00766672</span>]</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a> [ <span class="fl">0.</span>         <span class="fl">33.1219236</span>  <span class="fl">33.11475068</span> <span class="fl">33.11474829</span> <span class="fl">33.11474878</span>]]</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>equilibrium con. [[  <span class="fl">0.</span>         <span class="fl">363.01297881</span> <span class="fl">363.01297881</span> <span class="fl">363.01297881</span> <span class="fl">363.01297881</span>]</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">318.1944288</span>  <span class="fl">318.1944288</span>  <span class="fl">318.1944288</span>  <span class="fl">318.1944288</span> ]</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">290.89229795</span> <span class="fl">290.89229795</span> <span class="fl">290.89229795</span> <span class="fl">290.89229795</span>]</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">270.64108016</span> <span class="fl">270.6410802</span>  <span class="fl">270.6410802</span>  <span class="fl">270.6410802</span> ]</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">254.42384653</span> <span class="fl">254.4238468</span>  <span class="fl">254.4238468</span>  <span class="fl">254.4238468</span> ]</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">240.88381563</span> <span class="fl">240.88381706</span> <span class="fl">240.88381707</span> <span class="fl">240.88381707</span>]</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">229.2742951</span>  <span class="fl">229.27430144</span> <span class="fl">229.27430147</span> <span class="fl">229.27430146</span>]</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">219.13303858</span> <span class="fl">219.13306239</span> <span class="fl">219.1330625</span>  <span class="fl">219.13306247</span>]</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">210.15082158</span> <span class="fl">210.15089874</span> <span class="fl">210.15089908</span> <span class="fl">210.150899</span>  ]</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">202.1091389</span>  <span class="fl">202.10928137</span> <span class="fl">202.10928156</span> <span class="fl">202.10928151</span>]]</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a> <span class="op">==========================</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>TOTC_liquid acutal <span class="op">=</span> [[  <span class="fl">0.</span>         <span class="fl">241.06708729</span> <span class="fl">241.06708729</span> <span class="fl">241.06708729</span> <span class="fl">241.06708729</span>]</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">278.14420505</span> <span class="fl">278.14420505</span> <span class="fl">278.14420505</span> <span class="fl">278.14420505</span>]</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">300.84601984</span> <span class="fl">300.84601984</span> <span class="fl">300.84601984</span> <span class="fl">300.84601984</span>]</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">317.71934579</span> <span class="fl">317.71934583</span> <span class="fl">317.71934583</span> <span class="fl">317.71934583</span>]</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">331.24513555</span> <span class="fl">331.24513597</span> <span class="fl">331.24513597</span> <span class="fl">331.24513597</span>]</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">342.54501334</span> <span class="fl">342.54501607</span> <span class="fl">342.54501608</span> <span class="fl">342.54501608</span>]</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">352.23785274</span> <span class="fl">352.23786646</span> <span class="fl">352.23786653</span> <span class="fl">352.23786651</span>]</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">360.70735579</span> <span class="fl">360.70741269</span> <span class="fl">360.70741294</span> <span class="fl">360.70741288</span>]</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">368.21041697</span> <span class="fl">368.21062174</span> <span class="fl">368.21062259</span> <span class="fl">368.21062239</span>]</span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a> [  <span class="fl">0.</span>         <span class="fl">374.92840427</span> <span class="fl">374.92925772</span> <span class="fl">374.92926068</span> <span class="fl">374.92926</span>   ]]</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>TOTC_equilirbium [[<span class="fl">0.00000000e+00</span> <span class="fl">8.42688510e+08</span> <span class="fl">8.42688510e+08</span> <span class="fl">8.42688510e+08</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>  <span class="fl">8.42688510e+08</span>]</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">1.44671922e+06</span> <span class="fl">1.44671922e+06</span> <span class="fl">1.44671922e+06</span></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.44671922e+06</span>]</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">3.95580863e+05</span> <span class="fl">3.95580863e+05</span> <span class="fl">3.95580863e+05</span></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  <span class="fl">3.95580863e+05</span>]</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">2.00414888e+05</span> <span class="fl">2.00414887e+05</span> <span class="fl">2.00414887e+05</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.00414887e+05</span>]</span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">1.26265454e+05</span> <span class="fl">1.26265453e+05</span> <span class="fl">1.26265453e+05</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.26265453e+05</span>]</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">8.88670682e+04</span> <span class="fl">8.88670627e+04</span> <span class="fl">8.88670627e+04</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>  <span class="fl">8.88670627e+04</span>]</span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">6.68694892e+04</span> <span class="fl">6.68694695e+04</span> <span class="fl">6.68694694e+04</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>  <span class="fl">6.68694694e+04</span>]</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">5.26167642e+04</span> <span class="fl">5.26167026e+04</span> <span class="fl">5.26167024e+04</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>  <span class="fl">5.26167024e+04</span>]</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">4.27477532e+04</span> <span class="fl">4.27475783e+04</span> <span class="fl">4.27475775e+04</span></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>  <span class="fl">4.27475777e+04</span>]</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a> [<span class="fl">0.00000000e+00</span> <span class="fl">3.55752795e+04</span> <span class="fl">3.55746575e+04</span> <span class="fl">3.55746553e+04</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>  <span class="fl">3.55746558e+04</span>]]</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>pH profile [[<span class="fl">13.69699455</span> <span class="fl">12.32826794</span> <span class="fl">12.32826794</span> <span class="fl">12.32826794</span> <span class="fl">12.32826794</span>]</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.92763219</span> <span class="fl">10.92763219</span> <span class="fl">10.92763219</span> <span class="fl">10.92763219</span>]</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.6255617</span>  <span class="fl">10.6255617</span>  <span class="fl">10.6255617</span>  <span class="fl">10.6255617</span> ]</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.46273867</span> <span class="fl">10.46273867</span> <span class="fl">10.46273867</span> <span class="fl">10.46273867</span>]</span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.35020924</span> <span class="fl">10.35020924</span> <span class="fl">10.35020924</span> <span class="fl">10.35020924</span>]</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.26362266</span> <span class="fl">10.26362264</span> <span class="fl">10.26362264</span> <span class="fl">10.26362264</span>]</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.19286722</span> <span class="fl">10.19286712</span> <span class="fl">10.19286712</span> <span class="fl">10.19286712</span>]</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.13278486</span> <span class="fl">10.13278446</span> <span class="fl">10.13278445</span> <span class="fl">10.13278445</span>]</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.08039167</span> <span class="fl">10.08039025</span> <span class="fl">10.08039024</span> <span class="fl">10.08039025</span>]</span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a> [<span class="fl">13.69699455</span> <span class="fl">10.03380924</span> <span class="fl">10.03380333</span> <span class="fl">10.03380331</span> <span class="fl">10.03380331</span>]]</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a> <span class="op">==========================</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>c_oh <span class="im">from</span> c_h [[<span class="fl">5.01187234e+02</span> <span class="fl">2.14424001e+01</span> <span class="fl">2.14424001e+01</span> <span class="fl">2.14424001e+01</span></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.14424001e+01</span>]</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">8.52388624e-01</span> <span class="fl">8.52388624e-01</span> <span class="fl">8.52388624e-01</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>  <span class="fl">8.52388624e-01</span>]</span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">4.25174443e-01</span> <span class="fl">4.25174443e-01</span> <span class="fl">4.25174443e-01</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>  <span class="fl">4.25174443e-01</span>]</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">2.92243000e-01</span> <span class="fl">2.92243000e-01</span> <span class="fl">2.92243000e-01</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.92243000e-01</span>]</span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">2.25535385e-01</span> <span class="fl">2.25535384e-01</span> <span class="fl">2.25535384e-01</span></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2.25535384e-01</span>]</span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">1.84768574e-01</span> <span class="fl">1.84768565e-01</span> <span class="fl">1.84768565e-01</span></span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.84768565e-01</span>]</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">1.56990246e-01</span> <span class="fl">1.56990211e-01</span> <span class="fl">1.56990210e-01</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.56990210e-01</span>]</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">1.36706859e-01</span> <span class="fl">1.36706734e-01</span> <span class="fl">1.36706733e-01</span></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.36706733e-01</span>]</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">1.21170562e-01</span> <span class="fl">1.21170165e-01</span> <span class="fl">1.21170164e-01</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.21170164e-01</span>]</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a> [<span class="fl">5.01187234e+02</span> <span class="fl">1.08846555e-01</span> <span class="fl">1.08845074e-01</span> <span class="fl">1.08845069e-01</span></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1.08845070e-01</span>]]</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a><span class="op">=====</span> Biogas <span class="op">======</span></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a>Gas inlet CO2         : <span class="fl">798.9</span> g<span class="op">/</span>m3</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a>Gas outlet initial      : <span class="fl">0.00</span> g<span class="op">/</span>m3</span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a>Gas outlet final        : <span class="fl">247.81</span> g<span class="op">/</span>m3</span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a>CO2 removal efficiency  : <span class="fl">68.98</span> <span class="op">%</span></span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a><span class="op">---</span> pH <span class="op">---</span></span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>Initial pH      : <span class="fl">13.697</span></span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>Final pH        : <span class="fl">10.034</span></span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a><span class="op">======================================</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>

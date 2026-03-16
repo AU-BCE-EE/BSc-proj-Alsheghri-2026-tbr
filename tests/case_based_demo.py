@@ -41,7 +41,7 @@ cr_TOTC0  = 0.0
 v_res = 1 / 1000 # m3
 
 # pH
-pH    = 13
+pH    = 13.7
 ex_oh = 10**(-(14-pH))*1000 # mol/m3
 
 henry = [3.3e-2, 2400]      # NIST-based
@@ -108,6 +108,10 @@ print(f'TOTC_liquid acutal = {TOTC_actual}')
 print(f'TOTC_equilirbium {TOTC_eq}')
 
 print(f'pH profile {results_biogas['pH_profile']}')
+
+print("\n ========================== \n")
+print(f'c_oh from c_h {results_biogas['c_oh']}')
+
 
 # # ==================== Case 2 cement production 14% - 30% ==========================
 # frac_cement = 0.20    # fraction of co2 in the gas 
