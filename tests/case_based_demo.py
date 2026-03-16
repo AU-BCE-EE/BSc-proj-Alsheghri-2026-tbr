@@ -1,3 +1,7 @@
+"""
+Old case based demo version, here some calculations are done manual
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
@@ -113,56 +117,56 @@ print("\n ========================== \n")
 print(f'c_oh from c_h {results_biogas['c_oh']}')
 
 
-# # ==================== Case 2 cement production 14% - 30% ==========================
-# frac_cement = 0.20    # fraction of co2 in the gas 
-# cgin_cement = pres / ((temp + 273.15) * R) * frac_cement * M_co2 
+# ==================== Case 2 cement production 14% - 30% ==========================
+frac_cement = 0.20    # fraction of co2 in the gas 
+cgin_cement = pres / ((temp + 273.15) * R) * frac_cement * M_co2 
 
-# results_cement = md.tfmod(
-#     L, por_g, por_l, v_g, v_l, nc,
-#     cg0, cl_co20, cl_TOTC0,
-#     cgin_cement, ex_oh,
-#     clin_co2, clin_TOTC,
-#     cr_co20, cr_TOTC0,
-#     Kga, henry, temp, dens_l,
-#     times,
-#     kg='onda',
-#     kl='onda',
-#     ae='onda',
-#     v_res=v_res,          # now > 0,
-#     pres=pres,
-#     ssa=ssa,
-#     typ='PR',
-#     counter=False,         # counter-current gas–liquid
-#     recirc=False,          # enable recycle
-#     enh_method='PFO'
-# )
+results_cement = md.tfmod(
+    L, por_g, por_l, v_g, v_l, nc,
+    cg0, cl_co20, cl_TOTC0,
+    cgin_cement, ex_oh,
+    clin_co2, clin_TOTC,
+    cr_co20, cr_TOTC0,
+    Kga, henry, temp, dens_l,
+    times,
+    kg='onda',
+    kl='onda',
+    ae='onda',
+    v_res=v_res,          # now > 0,
+    pres=pres,
+    ssa=ssa,
+    typ='PR',
+    counter=False,         # counter-current gas–liquid
+    recirc=False,          # enable recycle
+    enh_method='PFO'
+)
 
-# # ==================== Case 3 low concnetration 1% - 10% ==========================
+# ==================== Case 3 low concnetration 1% - 10% ==========================
 
-# frac_low = 0.05    # fraction of co2 in the gas 
-# cgin_low = pres / ((temp + 273.15) * R) * frac_low * M_co2 
+frac_low = 0.05    # fraction of co2 in the gas 
+cgin_low = pres / ((temp + 273.15) * R) * frac_low * M_co2 
 
-# results_low = md.tfmod(
-#     L, por_g, por_l, v_g, v_l, nc,
-#     cg0, cl_co20, cl_TOTC0,
-#     cgin_low, ex_oh,
-#     clin_co2, clin_TOTC,
-#     cr_co20, cr_TOTC0,
-#     Kga, henry, temp, dens_l,
-#     times,
-#     kg='onda',
-#     kl='onda',
-#     ae='onda',
-#     v_res=v_res,          # now > 0, activates reservoir
-#     pres=pres,
-#     ssa=ssa,
-#     typ='PR',
-#     counter=False,         # counter-current gas–liquid
-#     recirc=False,          # enable recycle
-#     enh_method='PFO'
-# )
+results_low = md.tfmod(
+    L, por_g, por_l, v_g, v_l, nc,
+    cg0, cl_co20, cl_TOTC0,
+    cgin_low, ex_oh,
+    clin_co2, clin_TOTC,
+    cr_co20, cr_TOTC0,
+    Kga, henry, temp, dens_l,
+    times,
+    kg='onda',
+    kl='onda',
+    ae='onda',
+    v_res=v_res,          # now > 0, activates reservoir
+    pres=pres,
+    ssa=ssa,
+    typ='PR',
+    counter=False,         # counter-current gas–liquid
+    recirc=False,          # enable recycle
+    enh_method='PFO'
+)
 
-# # ======================= resutl processing ============================ 
+# ======================= resutl processing ============================ 
 
 def result_processing(res,cgin,label):
     gas = res[  'gas_conc'   ]
@@ -256,8 +260,8 @@ def result_processing(res,cgin,label):
 # biogas
 result_processing(results_biogas, cgin_biogas, 'Biogas')
 
-# # # cement 
-# result_processing(results_cement,cgin_cement, 'Cement')
+# cement 
+result_processing(results_cement,cgin_cement, 'Cement')
 
-# # low conc.
-# result_processing(results_low, cgin_low, 'Low conc.')
+# low conc.
+result_processing(results_low, cgin_low, 'Low conc.')
