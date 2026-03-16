@@ -1,0 +1,246 @@
+"""
+New version of case based demo, model run and resutls processing are imporved.
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import mods.mod_co2_main as md
+import importlib
+import matplotlib as mpl
+importlib.reload(md)
+
+def modelrun(v_g = 0.03,
+             v_l =  1e-3,
+             pH  = 13.7,
+             frac_co2 = 0.45,
+             counter=False,
+             recirc=False,
+             enh_method='PFO'):
+    """
+    A function for model running
+    units of arguments:
+    v_g             m/s
+    v_l             m/s
+    """
+    #========= fixed parameters ==========# 
+    L     = 2       # m
+    por_g = 0.91
+    por_l = 0.05
+    ssa   = 260     # m2/m3
+    nc    = 10
+
+    cg0 = 0.0
+
+    cl_co20   = 0.0
+    cl_TOTC0  = 0.0
+    clin_co2  = 0.0
+    clin_TOTC = 0.0
+    cr_co20   = 0.0
+    cr_TOTC0  = 0.0
+
+    v_res = 1/1000
+
+    henry = [3.3e-2, 2400]
+
+    temp   = 25.0    # Celcius
+    dens_l = 997.0   # kg/m3
+    pres   = 1.0     # bar
+
+    times = np.linspace(0,1200,5) # s
+
+    M_co2 = 44.009          # g/mol
+    R     = 8.314e-5        # m3 * bar / K-mol
+
+    # ================= Derived values =================
+
+    ex_oh = 10**(-(14-pH)) * 1000 # mol/m3
+
+    cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
+    results = md.tfmod(
+        L, por_g, por_l, v_g, v_l, nc,
+        cg0, cl_co20, cl_TOTC0,
+        cgin, ex_oh,
+        clin_co2, clin_TOTC,
+        cr_co20, cr_TOTC0,
+        'onda', henry, temp, dens_l,
+        times,
+        kg='onda',
+        kl='onda',
+        ae='onda',
+        v_res=v_res,
+        pres=pres,
+        ssa=ssa,
+        typ='PR',
+        counter=counter,
+        recirc=recirc,
+        enh_method=enh_method
+    )
+
+    return results, cgin
+
+
+def result_processing(res,cgin,label):
+    """
+    A function for result processing
+    """
+
+    # ===== extract the results ====== #
+    gas     = res[  'gas_conc'   ]
+    liq     = res['co2_liq_conc' ]
+    TOTC    = res['TOTC_liq_conc']
+    eq      = res[   'eq_conc'   ]    
+    pH      = res[  'pH_profile' ]
+    TOTC_eq = res[   'TOTC_eq'   ]
+    x       = res[  'cell_pos'   ] 
+    t       = res[    'time'     ]
+
+
+    counter = res['inputs']['counter']
+    recirc  = res['inputs']['recirc']
+  
+    m_gin  = res['m_gin']   # gas mol/s coming in
+    m_gout = res['m_gout']  # gas mol/s coming out 
+    m_lout = res['m_lout']  # liq mol/s coming out
+    m_tout = res['m_tout']  # tot mol/s coning out (m_gout + m_lout)
+    
+    # outlet hanling 
+    gas_outlet = gas[-1,:]
+    if counter:
+        liq_outlet = liq[0,:]
+        pH_outlet  = pH[0,:]
+    else:
+        liq_outlet = liq[-1,:]
+        pH_outlet  = pH[-1,:]
+
+    # ========= results processing =============
+    gas_inlet       = float(cgin)
+    gas_out_initial = gas_outlet[0]
+    gas_out_final   = gas_outlet[-1]
+
+    removal_eff = 100 * (gas_inlet - gas_out_final) / gas_inlet
+
+    pH_initial = pH_outlet[0]
+    pH_final   = pH_outlet[-1]
+
+    mass_balance = m_tout - m_gin
+
+    # ===== print results ========
+
+    print(f'\n===== {label} ======\n')
+
+    print(f"\nGas inlet CO2         : {gas_inlet:.2f} g/m3")
+    print(f"Gas outlet initial      : {gas_out_initial:.2f} g/m3")
+    print(f"Gas outlet final        : {gas_out_final:.2f} g/m3")
+    print(f"CO2 removal efficiency  : {removal_eff:.2f} %")
+
+    print("\n--- pH ---")
+    print(f"Initial pH      : {pH_initial:.3f}")
+    print(f"Final pH        : {pH_final:.3f}")
+    print("\n======================================\n")
+
+    print("\n====== Mass balance =======")
+    print(f'Gas in          :{m_gin}  mol/s')
+    print(f'Gas out         :{m_gout} mol/s')
+    print(f'liquid out      :{m_lout} mol/s')
+    print(f'Mass balance    :{mass_balance}')
+
+    print("\n====================================\n")
+
+
+    # ================ flip for counter-current ================
+    if counter:
+        liq_plot    = liq[::-1,:]
+        pH_plot     = pH[::-1,:]
+        eq_plot     = eq[::-1,:]
+        TOTC_plot   = TOTC[::-1,:]
+        TOTCeq_plot = TOTC_eq[::-1,:]
+    else: 
+        liq_plot    = liq
+        pH_plot     = pH
+        eq_plot     = eq
+        TOTC_plot   = TOTC
+        TOTCeq_plot = TOTC_eq
+
+    # =================== plot style =====================
+    mpl.rcParams['font.family'] = 'serif'
+    mpl.rcParams['font.serif'] = ['Garamond']
+    mpl.rcParams['axes.linewidth'] = 1
+    mpl.rcParams['axes.labelsize'] = 12
+    mpl.rcParams['axes.titlesize'] = 14
+    mpl.rcParams['xtick.labelsize'] = 11
+    mpl.rcParams['ytick.labelsize'] = 11
+    mpl.rcParams['legend.fontsize'] = 11    
+
+    # ================= position profile =================
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1,3,1)
+    plt.title('gas conc. vs position')
+    plt.plot(x, gas[:,-1], 'b-', linewidth = 1.8) 
+    plt.ylabel('Gas conc [g/m3]')
+    plt.xlabel('Position [m]')
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+    plt.grid()
+
+    plt.subplot(1,3,2)
+    plt.title('liq CO2 conc. vs position')
+    plt.plot(x, liq_plot[:,-1], 'g-', label = 'Actual', linewidth = 1.8)
+    plt.plot(x, eq_plot[:,-1], '--', label = 'Equlibrium', linewidth = 1.8)
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+    plt.ylabel('CO2 conc. [g/m3]')
+    plt.xlabel('Position [m]')
+    plt.legend()
+    plt.grid()
+
+    plt.subplot(1,3,3)
+    plt.title('pH vs position')
+    plt.plot(x, pH_plot[:,-1], 'r-', linewidth = 1.8)
+    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
+    plt.ylabel('pH value')
+    plt.xlabel('Position [m]')
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
+
+    # =============== time plots ======================
+
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1,3,1)
+    plt.title('Gas concentraion at the outlet vs time')
+    plt.plot(t, gas_outlet)
+    plt.ylabel('CO2 conc. [g/m3]')
+    plt.xlabel('Time [s]')
+    plt.grid()
+    
+    plt.subplot(1,3,2)
+    plt.title('liquid concentraion at the outlet vs time')
+    plt.plot(t, liq_outlet)
+    plt.ylabel('CO2 conc. [g/m3]')
+    plt.xlabel('t[s]')
+    plt.grid()
+
+    plt.subplot(1,3,3)
+    plt.title('pH at the outlet vs time')
+    plt.plot(t, pH_outlet)
+    plt.ylabel('pH')
+    plt.xlabel('time[s]')
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
+
+
+    # ================= TOTC ===================== 
+    plt.figure(figsize=(6,5))
+    plt.title('TOTC vs position')
+
+    plt.plot(x, TOTC_plot[:,-1], label='Actual')
+    plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    plt.ylabel('TOTC [mol/m3]')
+    plt.xlabel('Position [m]')
+    plt.legend()
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
+
+
