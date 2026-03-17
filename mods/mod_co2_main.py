@@ -549,8 +549,11 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    m_gout = Q_g * ccgt[-1,:]
    
    Q_l    = v_l * 1    # m3/s
-   m_lout = Q_l * (ccl_co2t[-1,:] + ccl_TOTCt[-1,:])
-
+   if counter: 
+        m_lout = Q_l * (ccl_co2t[0,:] + ccl_TOTCt[0,:])
+   else:
+        m_lout = Q_l * (ccl_co2t[-1,:] + ccl_TOTCt[-1,:])
+        
    m_tout = m_gout + m_lout 
 
 
