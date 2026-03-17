@@ -112,7 +112,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="biogas-45-co2" class="level1">
 <h1>Biogas 45% CO2</h1>
-<div id="e4563074" class="cell" data-execution_count="2">
+<div id="bc05ac3c" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>results_biogas, cgin_biogas <span class="op">=</span> modelrun(frac_co2<span class="op">=</span><span class="fl">0.45</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>result_processing(results_biogas,cgin_biogas, <span class="st">'Biogas'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -167,7 +167,7 @@ Mass balance    :[-5.44601793e-01 -8.12018663e-07 -2.47788667e-09  5.85816951e-1
 </section>
 <section id="cement-20-co2" class="level1">
 <h1>Cement 20% CO2</h1>
-<div id="2525d041" class="cell" data-execution_count="3">
+<div id="10e8690b" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>results_cement, cgin_cement <span class="op">=</span> modelrun(frac_co2<span class="op">=</span><span class="fl">0.20</span>, pH <span class="op">=</span> <span class="dv">13</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>result_processing(results_cement,cgin_cement, <span class="st">'Cement'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -222,7 +222,7 @@ Mass balance    :[-2.42045241e-01 -1.40391925e-08  9.74211670e-09 -2.28287167e-1
 </section>
 <section id="low-conc.-case-5-co2" class="level1">
 <h1>Low conc. case 5% CO2</h1>
-<div id="666fff05" class="cell" data-execution_count="4">
+<div id="6791e13c" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>results_low, cgin_low <span class="op">=</span> modelrun(frac_co2<span class="op">=</span><span class="fl">0.05</span>, pH <span class="op">=</span> <span class="dv">12</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>result_processing(results_low,cgin_low, <span class="st">'Low conc'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -274,6 +274,766 @@ Mass balance    :[-6.05113103e-02 -1.47466934e-09  1.43129252e-10 -7.64912161e-1
 </div>
 </div>
 </div>
+</section>
+<section id="parameters-sweep-to-find-optimal-ph-for-the-given-flows" class="level1">
+<h1>Parameters sweep to find optimal pH for the given flows</h1>
+<div id="c6b0fd63" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pH_list <span class="op">=</span> [<span class="dv">13</span>,<span class="fl">13.2</span>,<span class="fl">13.5</span>,<span class="fl">13.7</span>,<span class="fl">13.9</span>]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pH <span class="kw">in</span> pH_list:</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    results_biogas, cgin_biogas <span class="op">=</span> modelrun(frac_co2 <span class="op">=</span> <span class="fl">0.45</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                                    v_g <span class="op">=</span> <span class="fl">0.5</span>, </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                                    v_l <span class="op">=</span>  <span class="fl">1e-3</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                                    pH  <span class="op">=</span> pH)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    result_processing(results_biogas, cgin_biogas, <span class="st">'Biogas'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 789.75 g/m3
+CO2 removal efficiency  : 1.15 %
+
+--- pH ---
+Initial pH      : 12.997
+Final pH        : 7.673
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :9.076696541734828  mol/s
+Gas out         :[0.         8.97237845 8.97237827 8.97237839 8.97237834] mol/s
+liquid out      :[0.         0.10431812 0.10431827 0.10431816 0.10431821] mol/s
+Mass balance    :[-9.07669654e+00  3.45393492e-08 -9.98735317e-10  9.80465131e-09
+  3.33460903e-09]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-2.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-3.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-4.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 784.70 g/m3
+CO2 removal efficiency  : 1.78 %
+
+--- pH ---
+Initial pH      : 13.197
+Final pH        : 8.067
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :9.076696541734828  mol/s
+Gas out         :[0.         8.91502742 8.91502743 8.91502743 8.91502743] mol/s
+liquid out      :[0.         0.1616691  0.16166911 0.16166911 0.16166911] mol/s
+Mass balance    :[-9.07669654e+00 -1.88136617e-08  3.37802852e-09 -2.95981906e-10
+ -3.21520588e-11]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-6.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-7.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-8.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 772.38 g/m3
+CO2 removal efficiency  : 3.32 %
+
+--- pH ---
+Initial pH      : 13.497
+Final pH        : 9.140
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :9.076696541734828  mol/s
+Gas out         :[0.         8.77499677 8.7749967  8.77499694 8.77499695] mol/s
+liquid out      :[0.         0.30169962 0.3016998  0.30169961 0.3016996 ] mol/s
+Mass balance    :[-9.07669654e+00 -1.60740045e-07 -4.69692267e-08  8.42775272e-09
+  8.26325319e-09]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-10.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-11.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-12.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 759.85 g/m3
+CO2 removal efficiency  : 4.89 %
+
+--- pH ---
+Initial pH      : 13.697
+Final pH        : 9.528
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :9.076696541734828  mol/s
+Gas out         :[0.         8.63269388 8.63269383 8.63269383 8.63269383] mol/s
+liquid out      :[0.         0.44400291 0.44400273 0.44400272 0.44400272] mol/s
+Mass balance    :[-9.07669654e+00  2.51227227e-07  2.02751824e-08 -6.99744263e-10
+ -4.28252989e-10]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-14.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-15.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-16.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 742.05 g/m3
+CO2 removal efficiency  : 7.12 %
+
+--- pH ---
+Initial pH      : 13.897
+Final pH        : 9.814
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :9.076696541734828  mol/s
+Gas out         :[0.         8.43047731 8.43047715 8.43047721 8.43047712] mol/s
+liquid out      :[0.         0.64621925 0.6462194  0.64621934 0.64621942] mol/s
+Mass balance    :[-9.07669654e+00  2.03906882e-08  3.44811646e-09  1.15464491e-08
+ -1.07403508e-09]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-18.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-19.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-6-output-20.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This shows that even with pH = 13.9 we would not get sufficient removal, we need to change the flow velocities.</p>
+<section id="lets-try-to-lower-the-gas-velocity" class="level2">
+<h2 class="anchored" data-anchor-id="lets-try-to-lower-the-gas-velocity">Lets try to lower the gas velocity</h2>
+<div id="81bf205d" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pH_list <span class="op">=</span> [<span class="dv">13</span>,<span class="fl">13.2</span>,<span class="fl">13.5</span>,<span class="fl">13.7</span>,<span class="fl">13.9</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pH <span class="kw">in</span> pH_list:</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    results_biogas, cgin_biogas <span class="op">=</span> modelrun(frac_co2 <span class="op">=</span> <span class="fl">0.45</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                                    v_g <span class="op">=</span> <span class="fl">0.1</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                                    v_l <span class="op">=</span>  <span class="fl">1e-3</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                                    pH  <span class="op">=</span> pH)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    result_processing(results_biogas, cgin_biogas, <span class="st">'Biogas'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 753.12 g/m3
+CO2 removal efficiency  : 5.73 %
+
+--- pH ---
+Initial pH      : 12.997
+Final pH        : 7.695
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.71124694 1.71124697 1.71124697 1.71124697] mol/s
+liquid out      :[0.         0.10409234 0.10409234 0.10409234 0.10409234] mol/s
+Mass balance    :[-1.81533931e+00 -2.23915850e-08  2.11267448e-10 -3.01539682e-10
+  1.90632399e-10]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-2.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-3.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-4.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 728.05 g/m3
+CO2 removal efficiency  : 8.87 %
+
+--- pH ---
+Initial pH      : 13.197
+Final pH        : 8.184
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.65427233 1.65427233 1.65427233 1.65427233] mol/s
+liquid out      :[0.         0.16106697 0.16106698 0.16106697 0.16106698] mol/s
+Mass balance    :[-1.81533931e+00 -1.22497978e-08  2.59755795e-09 -1.52533808e-09
+ -6.42308429e-12]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-6.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-7.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-8.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 668.53 g/m3
+CO2 removal efficiency  : 16.32 %
+
+--- pH ---
+Initial pH      : 13.497
+Final pH        : 9.257
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.5190402  1.51904026 1.51904027 1.51904027] mol/s
+liquid out      :[0.         0.29629888 0.29629904 0.29629904 0.29629904] mol/s
+Mass balance    :[-1.81533931e+00 -2.26196613e-07 -7.53581331e-09  2.87565793e-09
+ -4.73601824e-10]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-10.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-11.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-12.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 609.88 g/m3
+CO2 removal efficiency  : 23.66 %
+
+--- pH ---
+Initial pH      : 13.697
+Final pH        : 9.649
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.38577276 1.38577273 1.38577273 1.38577273] mol/s
+liquid out      :[0.         0.42956669 0.42956659 0.42956659 0.42956658] mol/s
+Mass balance    :[-1.81533931e+00  1.47656591e-07  1.33894935e-08  8.32423908e-09
+ -3.87533405e-09]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-14.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-15.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-16.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 529.28 g/m3
+CO2 removal efficiency  : 33.75 %
+
+--- pH ---
+Initial pH      : 13.897
+Final pH        : 9.960
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.20262932 1.20262939 1.2026294  1.2026294 ] mol/s
+liquid out      :[0.         0.6127095  0.61270988 0.61270992 0.61270991] mol/s
+Mass balance    :[-1.81533931e+00 -4.89614438e-07 -3.32032364e-08  9.33452049e-09
+ -1.98389616e-09]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-18.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-19.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-7-output-20.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Still not sufficient,</p>
+</section>
+<section id="lets-raise-the-liquid-flow-velocity-a-little-bit" class="level2">
+<h2 class="anchored" data-anchor-id="lets-raise-the-liquid-flow-velocity-a-little-bit">lets raise the liquid flow velocity a little bit</h2>
+<div id="41c8f48f" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>pH_list <span class="op">=</span> [<span class="dv">13</span>,<span class="fl">13.2</span>,<span class="fl">13.5</span>,<span class="fl">13.7</span>,<span class="fl">13.9</span>]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> pH <span class="kw">in</span> pH_list:</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    results_biogas, cgin_biogas <span class="op">=</span> modelrun(frac_co2 <span class="op">=</span> <span class="fl">0.45</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                                    v_g <span class="op">=</span> <span class="fl">0.1</span>, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                                    v_l <span class="op">=</span>  <span class="fl">7e-3</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                                    pH  <span class="op">=</span> pH)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    result_processing(results_biogas, cgin_biogas, <span class="st">'Biogas'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 549.09 g/m3
+CO2 removal efficiency  : 31.27 %
+
+--- pH ---
+Initial pH      : 12.997
+Final pH        : 9.882
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.24764505 1.2476451  1.24764507 1.24764491] mol/s
+liquid out      :[0.         0.56769427 0.56769421 0.56769424 0.5676944 ] mol/s
+Mass balance    :[-1.81533931e+00  1.17082655e-08 -1.12687637e-10  8.22681923e-11
+  7.79705189e-11]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-2.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-3.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-4.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 452.71 g/m3
+CO2 removal efficiency  : 43.34 %
+
+--- pH ---
+Initial pH      : 13.197
+Final pH        : 10.197
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         1.02865108 1.02865109 1.02865109 1.02865109] mol/s
+liquid out      :[0.         0.78668822 0.78668822 0.78668822 0.78668822] mol/s
+Mass balance    :[-1.81533931e+00 -5.67359271e-09  3.99784650e-11  3.36313200e-11
+ -9.33186861e-12]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-6.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-7.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-8.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 232.00 g/m3
+CO2 removal efficiency  : 70.96 %
+
+--- pH ---
+Initial pH      : 13.497
+Final pH        : 10.737
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         0.52715001 0.52715003 0.52715003 0.52715002] mol/s
+liquid out      :[0.         1.28818929 1.28818928 1.28818928 1.28818929] mol/s
+Mass balance    :[-1.81533931e+00 -2.05761741e-09  5.05261166e-10 -2.41824560e-10
+  6.97069069e-11]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-10.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-11.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-12.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 34.44 g/m3
+CO2 removal efficiency  : 95.69 %
+
+--- pH ---
+Initial pH      : 13.697
+Final pH        : 12.000
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         0.07824986 0.07824986 0.07824986 0.07824986] mol/s
+liquid out      :[0.         1.73708945 1.73708945 1.73708945 1.73708945] mol/s
+Mass balance    :[-1.81533931e+00  9.06717590e-10 -2.87205149e-10  1.57915903e-11
+ -5.48383561e-12]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-14.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-15.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-16.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+===== Biogas ======
+
+
+Gas inlet CO2         : 798.93 g/m3
+Gas outlet initial      : 0.00 g/m3
+Gas outlet final        : 1.06 g/m3
+CO2 removal efficiency  : 99.87 %
+
+--- pH ---
+Initial pH      : 13.897
+Final pH        : 13.439
+
+======================================
+
+
+====== Mass balance =======
+Gas in          :1.8153393083469656  mol/s
+Gas out         :[0.         0.00241972 0.00241972 0.00241972 0.00241972] mol/s
+liquid out      :[0.         1.81291953 1.81291959 1.81291959 1.81291959] mol/s
+Mass balance    :[-1.81533931e+00 -5.55246644e-08  2.87712409e-09 -1.57101443e-10
+ -5.92184080e-11]
+
+====================================
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-18.png" width="1142" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-19.png" width="1153" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="case_based_demo_files/figure-html/cell-8-output-20.png" width="565" height="469" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Now its good.</p>
+<p>So now we have a method to test different parameters :)</p>
+</section>
 </section>
 
 </main>

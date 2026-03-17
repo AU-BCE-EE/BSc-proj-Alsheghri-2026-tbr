@@ -275,3 +275,49 @@ result_processing(results_cement,cgin_cement, 'Cement')
 results_low, cgin_low = modelrun(frac_co2=0.05, pH = 12)
 result_processing(results_low,cgin_low, 'Low conc')
 ```
+
+
+
+# Parameters sweep to find optimal pH for the given flows
+
+```{python}
+pH_list = [13,13.2,13.5,13.7,13.9]
+for pH in pH_list:
+    results_biogas, cgin_biogas = modelrun(frac_co2 = 0.45,
+                                    v_g = 0.5, 
+                                    v_l =  1e-3,
+                                    pH  = pH)
+    result_processing(results_biogas, cgin_biogas, 'Biogas')
+```
+
+This shows that even with pH = 13.9 we would not get sufficient removal, we need to change the flow velocities. 
+
+## Lets try to lower the gas velocity 
+```{python}
+pH_list = [13,13.2,13.5,13.7,13.9]
+for pH in pH_list:
+    results_biogas, cgin_biogas = modelrun(frac_co2 = 0.45,
+                                    v_g = 0.1, 
+                                    v_l =  1e-3,
+                                    pH  = pH)
+    result_processing(results_biogas, cgin_biogas, 'Biogas')
+```
+
+Still not sufficient, 
+
+## lets raise the liquid flow velocity a little bit
+
+```{python}
+pH_list = [13,13.2,13.5,13.7,13.9]
+for pH in pH_list:
+    results_biogas, cgin_biogas = modelrun(frac_co2 = 0.45,
+                                    v_g = 0.1, 
+                                    v_l =  7e-3,
+                                    pH  = pH)
+    result_processing(results_biogas, cgin_biogas, 'Biogas')
+```
+
+Now its good. 
+
+So now we have a method to test different parameters :)
+
