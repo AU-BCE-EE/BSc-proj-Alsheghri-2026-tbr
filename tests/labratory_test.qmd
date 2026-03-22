@@ -1,3 +1,10 @@
+---
+author: Osman
+title: Labratory cases test
+---
+
+```{python}
+#| echo: false
 """
 New version of case based demo, model run and resutls processing are imporved.
 """
@@ -25,7 +32,7 @@ def modelrun(Q_g = 10,
     Q_l             mL/min
     """
     #========= fixed parameters ==========# 
-    L     = 2       # m
+    L     = 0.35       # m
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
@@ -48,7 +55,7 @@ def modelrun(Q_g = 10,
     dens_l = 997.0   # kg/m3
     pres   = 1.0     # bar
 
-    times = np.linspace(0,runtime,5) # s
+    times = np.linspace(0,runtime,100) # s
 
     M_co2 = 44.009          # g/mol
     R     = 8.314e-5        # m3 * bar / K-mol
@@ -264,3 +271,74 @@ def result_processing(res,cgin,label):
     plt.show()
 
 
+```
+
+# conc = 2.5% 
+```{python}
+pH_list = [13, 13.1, 13.2, 13.25, 13.3, 13.35, 13.4]
+for pH in pH_list:
+    results_1, cgin_1 = modelrun(frac_co2= 0.025,
+                                pH = pH,
+                                Q_l = 500,
+                                runtime = 10800, 
+                                counter = True,
+                                recirc = True)
+    result_processing(results_1,cgin_1, f'{pH}')
+
+```
+
+## vary liquid flow rate
+```{python}
+Ql = np.linspace(220,562,4)
+for Q_l in Ql:
+    results_2, cgin_2 = modelrun(frac_co2=0.025,
+                                 pH = 13.2,
+                                 Q_l = Q_l,
+                                 runtime=10800
+                                 )
+    result_processing(results_2,cgin_2, f'{Q_l}')
+                        
+
+```
+
+# conc = 5%
+``` {python}
+pH_list =  [13.5,13.55,13.57]
+for pH in pH_list:
+    results_3, cgin_3 = modelrun(frac_co2 = 0.05,
+                                pH = pH,
+                                Q_l = 400,
+                                Q_g = 10,
+                                runtime=10800)
+    result_processing(results_3,cgin_3, f'{pH}')
+
+```
+
+
+
+# conc = 10%
+``` {python}
+pH_list =  [13.6,13.7,13.8]
+for pH in pH_list:
+    results_3, cgin_3 = modelrun(frac_co2 = 0.10,
+                                pH = pH,
+                                Q_l = 400,
+                                Q_g = 10,
+                                runtime=7200)
+    result_processing(results_3,cgin_3, f'{pH}')
+
+```
+
+
+# conc = 15%
+``` {python}
+pH_list =  [13.6,13.7,13.8, 13.9]
+for pH in pH_list:
+    results_3, cgin_3 = modelrun(frac_co2 = 0.15,
+                                pH = pH,
+                                Q_l = 400,
+                                Q_g = 10,
+                                runtime=7200)
+    result_processing(results_3,cgin_3, f'{pH}')
+
+```
