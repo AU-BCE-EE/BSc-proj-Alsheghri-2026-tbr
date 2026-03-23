@@ -279,8 +279,10 @@ pH_list = [13, 13.1, 13.2, 13.25, 13.3, 13.35, 13.4]
 for pH in pH_list:
     results_1, cgin_1 = modelrun(frac_co2= 0.025,
                                 pH = pH,
+                                Q_g = 10,
                                 Q_l = 500,
-                                runtime = 10800, 
+                                runtime = 7200, 
+                                vres=20,
                                 counter = True,
                                 recirc = True)
     result_processing(results_1,cgin_1, f'{pH}')
@@ -292,9 +294,9 @@ for pH in pH_list:
 Ql = np.linspace(220,562,4)
 for Q_l in Ql:
     results_2, cgin_2 = modelrun(frac_co2=0.025,
-                                 pH = 13.2,
+                                 pH = 13,
                                  Q_l = Q_l,
-                                 runtime=10800
+                                 runtime=7200
                                  )
     result_processing(results_2,cgin_2, f'{Q_l}')
                         
@@ -303,13 +305,13 @@ for Q_l in Ql:
 
 # conc = 5%
 ``` {python}
-pH_list =  [13.5,13.55,13.57]
+pH_list =  [13.2,13.3,13.4]
 for pH in pH_list:
     results_3, cgin_3 = modelrun(frac_co2 = 0.05,
                                 pH = pH,
                                 Q_l = 400,
                                 Q_g = 10,
-                                runtime=10800)
+                                runtime=7200)
     result_processing(results_3,cgin_3, f'{pH}')
 
 ```
