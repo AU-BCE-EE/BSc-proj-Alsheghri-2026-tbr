@@ -1,3 +1,10 @@
+---
+author: Osman
+title: Labratory cases test
+---
+
+```{python}
+#| echo: false
 """
 New version of case based demo, model run and resutls processing are imporved.
 """
@@ -26,7 +33,7 @@ def modelrun(Q_g = 10,
     Q_l             mL/min
     """
     #========= fixed parameters ==========# 
-    L     = 0.3       # m
+    L     = 0.25       # m
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
@@ -140,11 +147,10 @@ def result_processing(res,cgin,label):
     # gas concnetration in ppm 
     temp   = 25.0    # Celcius
     pres   = 1.0     # bar
-    R      = 8.314e-5        # m3 * bar / K-mol
-    M_co2  = 44.009          # g/mol
-
+    R     = 8.314e-5        # m3 * bar / K-mol
+    M_co2 = 44.009          # g/mol
     gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
+    gas_inlet_ppm = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
     # ===== print results ========
 
     print(f'\n===== {label} ======\n')
@@ -277,3 +283,13 @@ def result_processing(res,cgin,label):
     plt.grid()
     plt.tight_layout()
     plt.show()
+```
+
+# Validation run
+
+```{python}
+
+results, cgin = modelrun(Q_g = 20, Q_l=500, pH = 12.9, frac_co2=0.025)
+result_processing(results,cgin,'Constant pH')
+
+```
