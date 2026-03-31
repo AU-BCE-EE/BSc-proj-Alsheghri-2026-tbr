@@ -29,7 +29,8 @@ def rates(t, n,
           vol_gas, vol_liq, vol_tot,
           k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
           temp, henry, pres, 
-          ssa, dens_l, por_l, por_g, counter = True, recirc = False, enh_method = 'PFO'):
+          ssa, dens_l, por_l, por_g, counter = True, recirc = False, enh_method = 'PFO',
+          constant_res_pH = False):
   
   # interpolation function
   def interpolation(t, c):                                             
@@ -176,6 +177,10 @@ def rates(t, n,
         cr_co2  = ncr_co2  / v_res                      # CO2 in the reservoir phase mol/m3   
         cr_TOTC = ncr_TOTC / v_res                      # TOTC in the reservoir phase mol/m3
 
+        if constant_res_pH:
+            ncr_TOTC = 0
+            cr_TOTC = 0
+
         # integrating the speciation model: 
         res_reservoir = sm.spec2_matrix(cr_TOTC, K_hco3, K_co3, KW, ex_oh)
         cr_h2co3 = res_reservoir['c_h2co3']
@@ -196,7 +201,10 @@ def rates(t, n,
         # CO2
         dmcr_co2  = (c_co2[oi] - cr_co2) * abs(v_l) - rxnr_co2 * v_res
         # TOTC
-        dmcr_TOTC = (c_TOTC[oi] - cr_TOTC)*abs(v_l) + rxnr_TOTC * v_res
+        if constant_res_pH:
+            dmcr_TOTC = 0
+        else:
+            dmcr_TOTC = (c_TOTC[oi] - cr_TOTC)*abs(v_l) + rxnr_TOTC * v_res
 
         # now we combine them together in one array
         dmcr = np.array([dmcr_co2, dmcr_TOTC])
@@ -271,7 +279,8 @@ def rates(t, n,
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
           clin_co2, clin_TOTC, cr_co20, cr_TOTC0, Kga, henry, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
-          pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO'):
+          pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO',
+          constant_res_pH = False):
    """"
     Simulate CO2 absorption in a trickle bed reaction/film with chemical reaction
 
@@ -371,6 +380,9 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
         - 'PFO' : Pseudo first-order reaction
         - 'RSO' : Reversible second-order reaction
         Default is 'PFO'
+    constant_res_pH: bool
+        If True, the reservoir pH would always be constant(initial pH)
+        If False, the reservori pH would vary with time
     
     Returns
     -------
@@ -525,7 +537,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                            vol_gas, vol_liq, vol_tot,
                            k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
                            temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc,
-                           enh_method),
+                           enh_method, constant_res_pH),
                    method = 'Radau')
    
    # Extract moles of compound [position, time]
