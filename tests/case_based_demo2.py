@@ -17,7 +17,8 @@ def modelrun(Q_g = 10,
              frac_co2 = 0.05,
              counter=True,
              recirc=True,
-             enh_method='PFO'):
+             enh_method='PFO',
+             cons_res_pH = True):
     """
     A function for model running
     units of arguments:
@@ -82,7 +83,8 @@ def modelrun(Q_g = 10,
         typ='PR',
         counter=counter,
         recirc=recirc,
-        enh_method=enh_method
+        enh_method=enh_method,
+        cons_res_pH = cons_res_pH
     )
 
     return results, cgin
@@ -262,5 +264,3 @@ def result_processing(res,cgin,label):
 
     plt.tight_layout()
     plt.show()
-
-
