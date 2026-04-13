@@ -1,0 +1,138 @@
+---
+author: Osman Alsh.
+title: pH sensitiviy analysis
+---
+
+
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import mods.mod_co2_main as md
+import importlib
+import matplotlib as mpl
+importlib.reload(md)
+
+Q_g = 10
+Q_l = 350
+D   = 0.19
+vres = 20
+runtime = 7200
+frac_co2 = 0.05
+counter=True
+recirc=True
+enh_method='PFO'
+constant_res_pH = True
+#========= fixed parameters ==========# 
+L     = 0.3       # m
+por_g = 0.91
+por_l = 0.05
+ssa   = 260     # m2/m3
+nc    = 10
+
+cg0 = 0.0
+
+cl_co20   = 0.0
+cl_TOTC0  = 0.0
+clin_co2  = 0.0
+clin_TOTC = 0.0
+cr_co20   = 0.0
+cr_TOTC0  = 0.0
+
+
+
+henry = [3.3e-2, 2400]
+
+temp   = 25.0    # Celcius
+dens_l = 997.0   # kg/m3
+pres   = 1.0     # bar
+
+times = np.linspace(0,runtime,100) # s
+
+M_co2 = 44.009          # g/mol
+R     = 8.314e-5        # m3 * bar / K-mol
+
+# ================= Derived values =================
+# cross sectional area of the reactor
+A = (np.pi*D**2)/4   # m2
+# flow velocity using flow rate and area 
+v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
+v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
+
+v_res = vres/1000/A
+cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
+
+pH_vals = np.arange(12.4,13 + 0.1,0.1)
+print(pH_vals)
+
+gas_out_dict = {}
+removal_dict = {}
+
+for pH in pH_vals:
+    ex_oh = 10**(-(14-pH)) * 1000 # mol/m3
+    results = md.tfmod(
+        L, por_g, por_l, v_g, v_l, nc,
+        cg0, cl_co20, cl_TOTC0,
+        cgin, ex_oh,
+        clin_co2, clin_TOTC,
+        cr_co20, cr_TOTC0,
+        'onda', henry, temp, dens_l,
+        times,
+        kg='onda',
+        kl='onda',
+        ae='onda',
+        v_res=v_res,
+        pres=pres,
+        ssa=ssa,
+        typ='PR',
+        counter=counter,
+        recirc=recirc,
+        enh_method=enh_method,
+        constant_res_pH = constant_res_pH
+        )
+    
+    gas = results['gas_conc']
+    gas_out = gas[-1,:]
+    gas_in = float(cgin)
+    removal = 100 * (gas_in - gas_out) / gas_in
+
+    gas_out_dict[pH] = gas_out
+    removal_dict[pH] = removal
+
+
+# =================== plot style =====================
+mpl.rcParams['font.family'] = 'serif'
+mpl.rcParams['font.serif'] = ['Garamond']
+mpl.rcParams['axes.linewidth'] = 1
+mpl.rcParams['axes.labelsize'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['xtick.labelsize'] = 11
+mpl.rcParams['ytick.labelsize'] = 11
+mpl.rcParams['legend.fontsize'] = 11  
+
+plt.figure(figsize=(7,5))
+
+for pH in pH_vals:
+    plt.plot(times, gas_out_dict[pH], label=f"pH = {pH:.3f}")
+plt.xlabel("Time [s]")
+plt.ylabel("Outlet CO2 [g/m3]")
+plt.title("Outlet CO2 concentration vs time (pH sensitivity)")
+plt.grid()
+plt.legend(ncol=2, fontsize=8)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(7,5))
+
+for pH in pH_vals:
+    plt.plot(times, removal_dict[pH], label=f"pH = {pH:.3f}")
+
+plt.xlabel("Time [s]")
+plt.ylabel("Removal efficiency [%]")
+plt.title("Removal efficiency vs time (pH sensitivity)")
+plt.ylim(0, 100)
+plt.grid()
+plt.legend(ncol=2, fontsize=8)
+plt.tight_layout()
+plt.show()
+```

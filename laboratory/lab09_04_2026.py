@@ -1,14 +1,103 @@
----
-author: Osman
-title: Labratory cases test
----
+"""
+Model validation with experimental data
+The pH in the reservoir was 
+"""
 
-```{python}
-#| echo: false
-"""
-New version of case based demo, model run and resutls processing are imporved.
-"""
+
 import numpy as np
+import pandas as pd
+
+# import the data
+data = pd.read_csv(
+    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\09_04_2026_co2_measurements.csv",
+    sep=';'
+)
+
+
+data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+
+# start and end for the inlet measurment
+start = "2026-04-09 10:16:41"
+end   = "2026-04-09 10:21:41"
+
+# extract all the values in the interval
+inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
+
+# mean inlet conc.
+inlet_conc = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+
+Q_gas_bund = 0.387  # L/min
+Q_air_mix = 2.8     # L/min
+
+# Before the dilution
+inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
+
+
+
+# oulet concentrations
+start_out = "2026-04-09 10:27:41"
+end_out = "2026-04-09 12:08:41"
+outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
+
+Q_gas_top = 0.398  # L/min
+Q_air_mix = 3.0705   # L/min
+
+# actual outlet conc.
+outlet_conc = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+temp   = 22.0           # Celcius
+pres   = 1.0            # bar
+M_co2 = 44.009          # g/mol
+R     = 8.314e-5        # m3 * bar / K-mol
+
+outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
+
+
+outlet_times = outlet["Timestamp"]
+t0 = outlet_times.iloc[0]
+outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
+
+
+
+
+# pH data 
+time = ["11:00", "11:05", "11:10", "11:15", "11:20", "11:25", "11:30", 
+        "11:35", "11:40", "11:45", "11:50", "11:55", "12:00"]
+pH   = [12.88, 12.88, 12.88, 12.91, 12.90, 12.89, 12.89, 12.90, 12.90, 12.89, 12.89, 12.89, 12.89]
+pH_data = pd.DataFrame({
+    "time": time,
+    "pH"  : pH
+})
+
+
+pH_data["Timestamp"] = pd.to_datetime(
+    "2026-04-09 " + pH_data["time"]
+)
+
+
+t0 = outlet_times.iloc[0]
+pH_data["t_sec"] = (pH_data["Timestamp"] - t0).dt.total_seconds()
+
+
+
+# experimental removal efficiency
+removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_actual * 100
+
+
+
+
+# Time variable cgin
+# inlet_times = inlet['Timestamp']
+# inlet_t_sec = (inlet_times - t0).dt.total_seconds().to_numpy()
+# inlet_conc_actual_ppm = inlet['SCD30_CO2'] * (Q_gas_bund + Q_air_mix) / Q_gas_bund
+# inlet_conc_actual_gm3 = pres/(R*(temp+273.15)) * inlet_conc_actual/1e6 * M_co2
+
+# # now buld the cgin dataframe wich the rates can use to interpolate 
+# cgin_df = pd.DataFrame({
+#     "time"       : inlet_t_sec,
+#     "inlet_conc" : inlet_conc_actual_gm3
+# })
+
+
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
 import importlib
@@ -20,7 +109,7 @@ def modelrun(Q_g = 10,
              D   = 0.19,
              pH  = 13.7,
              vres = 20,
-             runtime = 7200,
+             times = outlet_t_sec,
              frac_co2 = 0.05,
              counter=True,
              recirc=True,
@@ -33,13 +122,13 @@ def modelrun(Q_g = 10,
     Q_l             mL/min
     """
     #========= fixed parameters ==========# 
-    L     = 0.30       # m
+    L     = 0.3       # m
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 10
+    nc    = 30
 
-    cg0 = 0.0
+    cg0 = 9.59
 
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
@@ -52,11 +141,10 @@ def modelrun(Q_g = 10,
 
     henry = [3.3e-2, 2400]
 
-    temp   = 25.0    # Celcius
+    temp   = 22.0    # Celcius
     dens_l = 997.0   # kg/m3
     pres   = 1.0     # bar
 
-    times = np.linspace(0,runtime,100) # s
 
     M_co2 = 44.009          # g/mol
     R     = 8.314e-5        # m3 * bar / K-mol
@@ -71,15 +159,18 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
+    Kga = 0.023
+
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
+    # cgin = cgin_df
     results = md.tfmod(
         L, por_g, por_l, v_g, v_l, nc,
         cg0, cl_co20, cl_TOTC0,
         cgin, ex_oh,
         clin_co2, clin_TOTC,
         cr_co20, cr_TOTC0,
-        'onda', henry, temp, dens_l,
+        Kga, henry, temp, dens_l,
         times,
         kg='onda',
         kl='onda',
@@ -97,7 +188,7 @@ def modelrun(Q_g = 10,
     return results, cgin
 
 
-def result_processing(res,cgin,label):
+def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimental, label):
     """
     A function for result processing
     """
@@ -147,10 +238,11 @@ def result_processing(res,cgin,label):
     # gas concnetration in ppm 
     temp   = 25.0    # Celcius
     pres   = 1.0     # bar
-    R     = 8.314e-5        # m3 * bar / K-mol
-    M_co2 = 44.009          # g/mol
+    R      = 8.314e-5        # m3 * bar / K-mol
+    M_co2  = 44.009          # g/mol
+
     gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    gas_inlet_ppm = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
+    gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
     # ===== print results ========
 
     print(f'\n===== {label} ======\n')
@@ -236,9 +328,11 @@ def result_processing(res,cgin,label):
     plt.figure(figsize=(12, 5))
     plt.subplot(1,3,1)
     plt.title('Gas concentraion at the outlet vs time')
-    plt.plot(t, gas_outlet)
+    plt.plot(t, gas_outlet, 'r-', label = "Model")
+    plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
     plt.ylabel('CO2 conc. [g/m3]')
     plt.xlabel('Time [s]')
+    plt.legend()
     plt.grid()
     
     plt.subplot(1,3,2)
@@ -246,13 +340,16 @@ def result_processing(res,cgin,label):
     plt.plot(t, liq_outlet)
     plt.ylabel('CO2 conc. [g/m3]')
     plt.xlabel('t[s]')
+    plt.legend()
     plt.grid()
 
     plt.subplot(1,3,3)
     plt.title('pH at the outlet vs time')
-    plt.plot(t, pH_outlet)
+    plt.plot(t, pH_outlet, 'r-', label = "Model")
+    plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
     plt.ylabel('pH')
     plt.xlabel('time[s]')
+    plt.legend()
     plt.grid()
 
     plt.tight_layout()
@@ -276,20 +373,25 @@ def result_processing(res,cgin,label):
     # =================== Removal efficiency =========================
     plt.figure(figsize=(6,5))
     plt.title('CO2 removal efficiency vs time')
-    plt.plot(t, removal_eff_vs_t, 'b-', linewidth=1.8)
+    plt.plot(t, removal_eff_vs_t, 'r-', linewidth=1.8, label = 'Model')
+    plt.plot(t,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
     plt.ylabel('Removal efficiency [%]')
     plt.xlabel('Time [s]')
     plt.ylim(0, 100)
     plt.grid()
+    plt.legend()
     plt.tight_layout()
     plt.show()
-```
 
-# Validation run
 
-```{python}
+# There is one msitake in the model and it is pH, it is shifted upwards with 0.096
+# this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
-results, cgin = modelrun(Q_g = 10, Q_l = 505, pH = 12.6, frac_co2=0.019, runtime = 3600)
-result_processing(results,cgin,'Constant pH')
+frac_co2 = inlet_conc_actual/10**6
+results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
+                         pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='PFO'
+                         )
 
-```
+
+result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')
