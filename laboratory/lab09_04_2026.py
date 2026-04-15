@@ -24,7 +24,8 @@ end   = "2026-04-09 10:21:41"
 inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
 
 # mean inlet conc.
-inlet_conc = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
 
 Q_gas_bund = 0.387  # L/min
 Q_air_mix = 2.8     # L/min
@@ -43,7 +44,8 @@ Q_gas_top = 0.398  # L/min
 Q_air_mix = 3.0705   # L/min
 
 # actual outlet conc.
-outlet_conc = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576 
 temp   = 22.0           # Celcius
 pres   = 1.0            # bar
 M_co2 = 44.009          # g/mol
@@ -128,8 +130,7 @@ def modelrun(Q_g = 10,
     ssa   = 260     # m2/m3
     nc    = 30
 
-    cg0 = 9.59
-
+    cg0 = 10.661775
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
     clin_co2  = 0.0
@@ -159,7 +160,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    Kga = 0.023
+    Kga = 0.02286306828939348
 
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3

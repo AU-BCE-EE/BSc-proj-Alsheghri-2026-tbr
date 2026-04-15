@@ -40,7 +40,8 @@ end   = "2026-04-09 10:21:41"
 inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
 
 # mean inlet conc.
-inlet_conc = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576 # here i used the devlabs calibration curve
 
 Q_gas_bund = 0.387  # L/min
 Q_air_mix = 2.8     # L/min
@@ -59,7 +60,8 @@ Q_gas_top = 0.398  # L/min
 Q_air_mix = 3.0705   # L/min
 
 # actual outlet conc.
-outlet_conc = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576  # here i used the devlabs calibration curve
 temp   = 22.0           # Celcius
 pres   = 1.0            # bar
 M_co2 = 44.009          # g/mol
@@ -145,7 +147,7 @@ def modelrun(Q_g = 10,
     ssa   = 260     # m2/m3
     nc    = 30
 
-    cg0 = 9.59
+    cg0 = 10.661775 # ellers 9.9
 
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
@@ -638,11 +640,11 @@ lspar = least_squares(
     res_func, 
     x0 = [0.02])
     
-print(lspar.x[0])
+print(f'The estimated Kga value is: {lspar.x[0]}')
+# 
 
 ```
 
-As we can see the least square function returns 0.02286306828939348
 
 So now we make a new model run with the estimated parameter
 
@@ -650,7 +652,7 @@ So now we make a new model run with the estimated parameter
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', Kga = 0.02286306828939348
+                         enh_method='PFO', Kga = lspar.x[0]
                          )
 
 result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')
