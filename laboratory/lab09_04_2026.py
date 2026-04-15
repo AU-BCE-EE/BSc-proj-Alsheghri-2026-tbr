@@ -182,7 +182,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        we = wet_eff,
+        wet_eff = wet_eff,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -366,7 +366,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.title('TOTC vs position')
 
     plt.plot(x, TOTC_plot[:,-1], label='Actual')
-    plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
     plt.ylabel('TOTC [mol/m3]')
     plt.xlabel('Position [m]')
     plt.legend()
