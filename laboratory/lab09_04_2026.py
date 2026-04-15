@@ -113,6 +113,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
+             wet_eff = 1.0,
              counter=True,
              recirc=True,
              enh_method='PFO',
@@ -130,7 +131,7 @@ def modelrun(Q_g = 10,
     ssa   = 260     # m2/m3
     nc    = 30
 
-    cg0 = 10.661775
+    cg0 = 9.9
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
     clin_co2  = 0.0
@@ -160,8 +161,10 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    Kga = 0.02286306828939348
-
+    wet_eff = wet_eff
+    # Kga = 0.02286
+    Kga = 'onda' # onda would work if we added a wetting efficiency in the ae equation in the model
+    # but the wetting efficiency would be low around 0.105
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
     # cgin = cgin_df
@@ -179,6 +182,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
+        we = wet_eff,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -391,7 +395,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO'
+                         enh_method='PFO', wet_eff = 0.105
                          )
 
 

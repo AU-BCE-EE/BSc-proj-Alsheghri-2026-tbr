@@ -29,7 +29,7 @@ def rates(t, n,
           vol_gas, vol_liq, vol_tot,
           k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res, 
           temp, henry, pres, 
-          ssa, dens_l, por_l, por_g, counter = True, recirc = False, enh_method = 'PFO',
+          ssa, dens_l, por_l, por_g, wet_eff = 1.0, counter = True, recirc = False, enh_method = 'PFO',
           constant_res_pH = False):
   
   # interpolation function
@@ -130,7 +130,7 @@ def rates(t, n,
       
       # some effective area for mass transfer? 
       ae = ssa * (1.0-2.71828**(-1.45 * (sigm_c / sigm_l)**0.75 *
-                              Re**0.1 * Fr**-0.05 * We**0.2))
+                              Re**0.1 * Fr**-0.05 * We**0.2)) * wet_eff
      
       #gas phase resistance
       kg = dp_emp * (v_g * dens_g / (ssa * visc_g))**0.7 \
@@ -279,7 +279,7 @@ def rates(t, n,
 def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh, 
           clin_co2, clin_TOTC, cr_co20, cr_TOTC0, Kga, henry, temp, dens_l, 
           times, kg='onda', kl='onda', ae='onda', v_res = 0, 
-          pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO',
+          pres = 1., ssa = 1100, wet_eff = 1.0, typ = 'TBD', counter = True, recirc = False, enh_method = 'PFO',
           constant_res_pH = False):
    """"
     Simulate CO2 absorption in a trickle bed reaction/film with chemical reaction
@@ -293,6 +293,8 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
         Gas phase porosity (m³ gas / m³ total volume)
     por_l : float
         Liquid phase content (m³ liquid / m³ total volume)
+    wet_eff: float
+        Wetting efficiency
     v_g : float
         Superficial gas velocity (m/s)
     v_l : float
@@ -536,7 +538,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                    args = (v_g, v_l, cgin, clin_co2, clin_TOTC,
                            vol_gas, vol_liq, vol_tot,
                            k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
-                           temp, henry, pres, ssa, dens_l, por_l, por_g, counter, recirc,
+                           temp, henry, pres, ssa, dens_l, por_l, por_g, wet_eff, counter, recirc,
                            enh_method, constant_res_pH),
                    method = 'Radau')
    
