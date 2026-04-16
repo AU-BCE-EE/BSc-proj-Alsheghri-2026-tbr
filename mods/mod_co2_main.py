@@ -108,8 +108,8 @@ def rates(t, n,
       g      = 9.81                   # m / sec^2
       Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
       Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
-      sigm_c = 0.75                   # critical surface tension
-      sigm_l = 0.0073                 # surface tension
+      sigm_c = 0.072                   # critical surface tension
+      sigm_l = 0.072                 # surface tension
       mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
       dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
 
@@ -540,7 +540,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                            k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
                            temp, henry, pres, ssa, dens_l, por_l, por_g, wet_eff, counter, recirc,
                            enh_method, constant_res_pH),
-                   method = 'Radau')
+                   method = 'BDF')
    
    # Extract moles of compound [position, time]
    ncgt      = out.y[0        : nc]       
