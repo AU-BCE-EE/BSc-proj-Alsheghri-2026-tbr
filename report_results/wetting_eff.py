@@ -87,17 +87,6 @@ removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_a
 
 
 
-# Time variable cgin
-# inlet_times = inlet['Timestamp']
-# inlet_t_sec = (inlet_times - t0).dt.total_seconds().to_numpy()
-# inlet_conc_actual_ppm = inlet['SCD30_CO2'] * (Q_gas_bund + Q_air_mix) / Q_gas_bund
-# inlet_conc_actual_gm3 = pres/(R*(temp+273.15)) * inlet_conc_actual/1e6 * M_co2
-
-# # now buld the cgin dataframe wich the rates can use to interpolate 
-# cgin_df = pd.DataFrame({
-#     "time"       : inlet_t_sec,
-#     "inlet_conc" : inlet_conc_actual_gm3
-# })
 
 
 import matplotlib.pyplot as plt
@@ -130,7 +119,7 @@ def modelrun(Q_g = 10,
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 60
+    nc    = 30
 
     cg0 = 9.9
     cl_co20   = 0.0
@@ -194,7 +183,12 @@ def modelrun(Q_g = 10,
     return results, cgin
 
 
-def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimental, label):
+
+
+
+
+
+def result_processing_2(res, cgin, outlet_conc_lab, removal_efficiency_experimental):
     """
     A function for result processing
     """
@@ -249,29 +243,6 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
     gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
     gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    # ===== print results ========
-
-    print(f'\n===== {label} ======\n')
-
-    print(f"\nGas inlet CO2               : {gas_inlet:.2f} g/m3")
-    print(f"Gas inlet ppm                 : {gas_inlet_ppm:.2f}")
-    print(f"Gas outlet initial            : {gas_out_initial:.2f} g/m3")
-    print(f"Gas outlet final              : {gas_out_final:.2f} g/m3")
-    print(f"Gas outlet final in ppm       : {gas_out_final_ppm:.2f}")
-    print(f"Final CO2 removal efficiency  : {removal_eff_final:.2f} %")
-
-    print("\n--- pH ---")
-    print(f"Initial pH      : {pH_initial:.3f}")
-    print(f"Final pH        : {pH_final:.3f}")
-    print("\n======================================\n")
-
-    print("\n====== Mass balance =======")
-    print(f'Gas in          :{m_gin}  mol/s')
-    print(f'Gas out         :{m_gout} mol/s')
-    print(f'liquid out      :{m_lout} mol/s')
-    print(f'Mass balance    :{mass_balance}')
-
-    print("\n====================================\n")
 
 
     # ================ flip for counter-current ================
@@ -288,118 +259,107 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
         TOTC_plot   = TOTC
         TOTCeq_plot = TOTC_eq
 
-    # =================== plot style =====================
-    mpl.rcParams['font.family'] = 'serif'
-    mpl.rcParams['font.serif'] = ['Garamond']
-    mpl.rcParams['axes.linewidth'] = 1
-    mpl.rcParams['axes.labelsize'] = 12
-    mpl.rcParams['axes.titlesize'] = 14
-    mpl.rcParams['xtick.labelsize'] = 11
-    mpl.rcParams['ytick.labelsize'] = 11
-    mpl.rcParams['legend.fontsize'] = 11    
+    return [t, gas_outlet, outlet_conc_lab, removal_eff_vs_t]
 
-    # ================= position profile =================
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1,3,1)
-    plt.title('gas conc. vs position')
-    plt.plot(x, gas[:,-1], 'b-', linewidth = 1.8) 
-    plt.ylabel('Gas conc [g/m3]')
-    plt.xlabel('Position [m]')
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.grid()
 
-    plt.subplot(1,3,2)
-    plt.title('liq CO2 conc. vs position')
-    plt.plot(x, liq_plot[:,-1], 'g-', label = 'Actual', linewidth = 1.8)
-    plt.plot(x, eq_plot[:,-1], '--', label = 'Equlibrium', linewidth = 1.8)
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
-
-    plt.subplot(1,3,3)
-    plt.title('pH vs position')
-    plt.plot(x, pH_plot[:,-1], 'r-', linewidth = 1.8)
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.ylabel('pH value')
-    plt.xlabel('Position [m]')
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-    # =============== time plots ======================
-
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1,3,1)
-    plt.title('Gas concentraion at the outlet vs time')
-    plt.plot(t, gas_outlet, 'r-', label = "Model")
-    plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('Time [s]')
-    plt.legend()
-    plt.grid()
+# comparison between onda, estimated and lower wetting. 
+frac_co2 = inlet_conc_actual/10**6
+results1, cgin1 = modelrun(Q_g = 10.84, Q_l = 505.4,
+                         pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='PFO', wet_eff = 1
+                         ) # onda
     
-    plt.subplot(1,3,2)
-    plt.title('liquid concentraion at the outlet vs time')
-    plt.plot(t, liq_outlet)
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('t[s]')
-    plt.legend()
-    plt.grid()
+res1 = result_processing_2(results1,cgin1,outlet_conc_gm3, removal_efficiency_experimental)
 
-    plt.subplot(1,3,3)
-    plt.title('pH at the outlet vs time')
-    plt.plot(t, pH_outlet, 'r-', label = "Model")
-    plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
-    plt.ylabel('pH')
-    plt.xlabel('time[s]')
-    plt.legend()
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-
-    # ================= TOTC ===================== 
-    plt.figure(figsize=(6,5))
-    plt.title('TOTC vs position')
-
-    plt.plot(x, TOTC_plot[:,-1], label='Actual')
-    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
-    plt.ylabel('TOTC [mol/m3]')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-    # =================== Removal efficiency =========================
-    plt.figure(figsize=(6,5))
-    plt.title('CO2 removal efficiency vs time')
-    plt.plot(t, removal_eff_vs_t, 'r-', linewidth=1.8, label = 'Model')
-    plt.plot(t,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
-    plt.ylabel('Removal efficiency [%]')
-    plt.xlabel('Time [s]')
-    plt.ylim(0, 100)
-    plt.grid()
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
-# There is one msitake in the model and it is pH, it is shifted upwards with 0.096
-# this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
 frac_co2 = inlet_conc_actual/10**6
-results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
+results2, cgin2 = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', wet_eff = 0.5, Kga = 'onda',recirc=True
-                         )
+                         enh_method='PFO', Kga=0.0228
+                         ) # estimated Kga
 
-# Kga = 0.0228
+res2 = result_processing_2(results2,cgin2,outlet_conc_gm3, removal_efficiency_experimental)
 
 
-result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')
+results3, cgin3 = modelrun(Q_g = 10.84, Q_l = 505.4,
+                         pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='PFO', Kga='onda', wet_eff = 0.105
+                         ) # Kga = 'onda' lower wetting efficiency
+
+
+res3 = result_processing_2(results3,cgin3,outlet_conc_gm3, removal_efficiency_experimental)
+
+
+
+mpl.rcParams['font.family'] = 'serif'
+mpl.rcParams['font.serif'] = ['Garamond']
+mpl.rcParams['axes.linewidth'] = 1
+mpl.rcParams['axes.labelsize'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['xtick.labelsize'] = 11
+mpl.rcParams['ytick.labelsize'] = 11
+mpl.rcParams['legend.fontsize'] = 11
+
+plt.plot(res1[0], res1[1], 'r-', label = "Kga = 'onda")
+plt.plot(res1[0], res1[2], 'bo', label = 'Experimental data', markersize = 2)
+plt.plot(res2[0], res2[1], 'g-', label = "Estimated Kga = 0.0228")
+plt.plot(res3[0], res3[1], 'k-', label = "Kga = 'onda, lower wetting eff.")
+plt.ylabel('CO2 conc. [g/m3]')
+plt.xlabel('Time [s]')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# plt.plot(res1[0], res1[3], 'r-', label = "Kga = 'onda'")
+plt.plot(res1[0], removal_efficiency_experimental, 'bo', label = 'Experimental data', markersize = 2)
+plt.plot(res2[0], res2[3], 'g-', label = "Estimated Kga = 0.0228")
+plt.plot(res3[0], res3[3], 'k-', label = "Kga = 'onda', lower wetting eff.")
+plt.title("Removal efficiency vs time")
+plt.ylim(0,100)
+plt.ylabel("Removal efficiency [%]")
+plt.xlabel('Time [s]')
+plt.legend()
+plt.grid()
+plt.show()
+
+
+
+
+# # effect of wetting efficiency. 
+frac_co2 = inlet_conc_actual/10**6
+wet = [0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+wet_results = {}
+for wet_eff in wet:
+    results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
+                         pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='PFO', wet_eff = wet_eff
+                         ) # onda
+    t, gas_outlet, exp_data,removal = result_processing_2(
+    results, cgin, outlet_conc_gm3, removal_efficiency_experimental
+    )
+
+    wet_results[wet_eff] = gas_outlet
+
+t_ref = t
+# ===============================
+# Plot 1: CO2 concentration
+# ===============================
+plt.figure(figsize=(7,5))
+
+for wet_eff in sorted(wet_results.keys(), reverse=True):
+    plt.plot(t_ref, wet_results[wet_eff], label=f'wet_eff = {wet_eff}')
+
+# experimental data
+plt.plot(t_ref, exp_data, 'ko', label='Experimental', markersize=3)
+
+plt.xlabel('Time [s]')
+plt.ylabel('CO2 conc. [g/m3]')
+plt.title('Effect of Wetting Efficiency on CO2 Outlet Concentration')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+    
+
