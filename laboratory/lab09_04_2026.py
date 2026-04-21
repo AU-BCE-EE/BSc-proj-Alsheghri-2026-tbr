@@ -86,20 +86,6 @@ removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_a
 
 
 
-
-# Time variable cgin
-# inlet_times = inlet['Timestamp']
-# inlet_t_sec = (inlet_times - t0).dt.total_seconds().to_numpy()
-# inlet_conc_actual_ppm = inlet['SCD30_CO2'] * (Q_gas_bund + Q_air_mix) / Q_gas_bund
-# inlet_conc_actual_gm3 = pres/(R*(temp+273.15)) * inlet_conc_actual/1e6 * M_co2
-
-# # now buld the cgin dataframe wich the rates can use to interpolate 
-# cgin_df = pd.DataFrame({
-#     "time"       : inlet_t_sec,
-#     "inlet_conc" : inlet_conc_actual_gm3
-# })
-
-
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
 import importlib
@@ -237,7 +223,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     gas_out_final   = gas_outlet[-1]
 
     removal_eff_final = 100 * (gas_inlet - gas_out_final) / gas_inlet
-    removal_eff_vs_t = 100 * (gas_inlet - gas_outlet) / gas_inlet
+    removal_eff_vs_t  = 100 * (gas_inlet - gas_outlet) / gas_inlet
 
     pH_initial = pH_outlet[0]
     pH_final   = pH_outlet[-1]
@@ -400,7 +386,6 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.title('E vs position')
 
     plt.plot(x, E_plot[:,-1])
-    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
     plt.ylabel('Enhancement factor')
     plt.xlabel('Position [m]')
     plt.legend()

@@ -54,8 +54,8 @@ def rates(t, n,
   # Number of cells (layers) (note integer division)
   nc = (len(n)-2)//3                                                   # double check this
   # Separate gas, liquid and reservoir state variables (mol) (mol/m2)
-  ncg     = n[0        : nc]                       # CO2 in the gas phase
-  n_co2   = n[nc       : (2 * nc)]                 # CO2 in the liquid phase
+  ncg     = n[0 : nc]                       # CO2 in the gas phase
+  n_co2   = n[nc : (2 * nc)]                 # CO2 in the liquid phase
   n_TOTC  = n[(2 * nc) : (3 * nc)]                 # TOTC in the liquid phase
   ncr     = n[(3 * nc) : (3 * nc) + 2]             # reservoir
 
@@ -108,8 +108,8 @@ def rates(t, n,
       g      = 9.81                   # m / sec^2
       Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
       Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
-      sigm_c = 0.072                   # critical surface tension
-      sigm_l = 0.072                 # surface tension
+      sigm_c = 0.072                  # critical surface tension
+      sigm_l = 0.072                  # surface tension
       mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
       dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
 
@@ -180,16 +180,17 @@ def rates(t, n,
 
         if constant_res_pH:
             ncr_TOTC = 0
-            cr_TOTC = 0
+            cr_TOTC  = 0
 
         # integrating the speciation model: 
         res_reservoir = sm.spec2_matrix(cr_TOTC, K_hco3, K_co3, KW, ex_oh)
-        cr_h2co3 = res_reservoir['c_h2co3']
-        cr_hco3  = res_reservoir['c_hco3']
-        cr_oh    = res_reservoir['c_oh'] 
+        cr_h2co3      = res_reservoir['c_h2co3']
+        cr_hco3       = res_reservoir['c_hco3']
+        cr_oh         = res_reservoir['c_oh'] 
 
         r1_res = k1 * cr_co2 - k2 * cr_h2co3
         r2_res = k3 * cr_co2 * cr_oh - k4 * cr_hco3
+
         # co2 in the reservoir
         clin_co2 = ncr_co2 / v_res                  
         rxnr_co2 = (r1_res + r2_res)
@@ -254,7 +255,7 @@ def rates(t, n,
 
   advec_co2 = - v_l_eff * np.diff(cvec_co2)             # advection for CO2 in the liquid
   # mol/s   mol/s      mol/s  mol/m3-s * m3
-  dm_co2 = advec_co2 + g2l - rxn_co2 * vol_liq          # Rate of change of CO2 in the liquid 
+  dm_co2    = advec_co2 + g2l - rxn_co2 * vol_liq          # Rate of change of CO2 in the liquid 
   
   # TOTC in the liquid phase
   if not counter:
@@ -268,10 +269,7 @@ def rates(t, n,
 
  # Combine gas and liquid and reservoir
   dm = np.concatenate([dmg, dm_co2, dm_TOTC, dmcr])               
-  # dm = np.append (dm, dmcr)
 
-  #if t / 3600 > 0.05:
-  #    breakpoint()
 
   return dm
 
@@ -289,9 +287,9 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     Parameters
     ----------
     L : float
-        Total longitudinal length/height of reactor/filter (m)
+        Hight of packed bed (m)
     por_g : float
-        Gas phase porosity (m³ gas / m³ total volume)
+        Gas phase content (m³ gas / m³ total volume)
     por_l : float
         Liquid phase content (m³ liquid / m³ total volume)
     wet_eff: float
@@ -301,7 +299,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     v_l : float
         Superficial liquid velocity (m/s)
     nc : int
-        Number of cells (layers)
+        Number of cells
         
     Initial concentrations
     ----------------------
@@ -310,18 +308,18 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     cl_co20 : float
         Initial CO2 concentration in liquid phase (g/m³ liquid)
     cl_TOTC0 : float
-        Initial total inorganic carbon (TOTC) concentration in liquid phase (mol/m³ liquid)
+        Initial total inorganic carbon (TOTC) concentration in liquid phase (mol/m3)
     
     Inflow concentrations
     ---------------------
     cgin : float
-        CO2 concentration in gas inflow (g/m³ gas)
+        CO2 concentration in gas inflow (g/m³)
     ex_oh : float
-        Excess OH⁻ concentration (mol/m³ liquid)
+        Excess OH⁻ concentration (mol/m³)
     clin_co2 : float
-        CO2 concentration in liquid inflow (g/m³ liquid) (ignored if recirc = True)
+        CO2 concentration in liquid inflow (g/m³)
     clin_TOTC : float
-        TOTC concentration in liquid inflow (mol/m³ liquid) (ignored if recirc = True)
+        TOTC concentration in liquid inflow (mol/m³ liquid)
     
     Reservoir initial concentrations
     --------------------------------
@@ -333,7 +331,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     Mass transfer parameters
     ------------------------
     Kga : float
-        Overall mass transfer coefficient for gas to liquid in gas phase units (s⁻¹)
+        Overall mass transfer coefficient (s⁻¹)
     henry : array_like
         Henry's law constant coefficients [k_H at 25°C, d(ln(kH))/d(1/T)] as in NIST Chemistry WebBook
     
@@ -346,7 +344,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     pres : float, optional
         Total pressure (bar). Default is 1.0
     ssa : float, optional
-        Particle specific surface area (m² surface / m³ bulk volume). Default is 1100
+        Particle specific surface area (m² surface / m³ bulk volume)
     
     Numerical parameters
     --------------------
@@ -390,7 +388,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     Returns
     -------
     dict
-        Dictionary containing simulation results with the following keys:
+        Dictionary containing simulation results:
         
         gas_conc : ndarray
             Gas phase CO2 concentration over time and position (g/m³ gas)
@@ -428,7 +426,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     - The model accounts for temperature-dependent equilibrium constants
     - Chemical speciation (pH, carbonate species) is calculated using the 
       spec2_matrix function from an imported speciation model (sm)
-    - The system of ODEs is solved using the 'Radau' method from scipy.integrate.solve_ivp
+    - The system of ODEs is solved using the 'BDF' method from scipy.integrate.solve_ivp
     
     References
     ----------
@@ -504,7 +502,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
 
 
    #============================== mol balance coming in ===============================
-   Q_g = v_g * 1     # m/s * 1m^2 = m3/s
+   Q_g    = v_g * 1     # m/s * 1m^2 = m3/s
    m_gin = Q_g * cgin  # m3/s * mol/m3  = mol/s
 
 
@@ -529,7 +527,6 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
 
    # Initial state variable array
    y0 = np.concatenate([ncg, ncl_co2, ncl_TOTC, cr])
-   #  y0 = np.append (y0, ncr)
 
 
    
