@@ -3,7 +3,7 @@ import pandas as pd
 
 # import the data
 data = pd.read_csv(
-    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\16_04_2026_co2_measurements.csv",
+    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\17_04_2026_co2_measurements.csv",
     sep=';'
 )
 
@@ -11,8 +11,8 @@ data = pd.read_csv(
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 
 # start and end for the inlet measurment
-start = "2026-04-16 13:00:18"
-end   = "2026-04-16 13:07:18"
+start = "2026-04-17 09:40:38"
+end   = "2026-04-17 09:54:38"
 
 # extract all the values in the interval
 inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
@@ -21,7 +21,7 @@ inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
 inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
 inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576 # here i used the devlabs calibration curve
 
-Q_gas_bund = 0.382  # L/min
+Q_gas_bund = 0.389  # L/min
 Q_air_mix = 2.736     # L/min
 
 # Before the dilution
@@ -30,11 +30,11 @@ inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # pp
 
 
 # oulet concentrations
-start_out = "2026-04-16 13:15:18"
-end_out = "2026-04-16 14:27:18"
+start_out = "2026-04-17 09:57:38"
+end_out = "2026-04-17 11:25:38"
 outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
 
-Q_gas_top = 0.388  # L/min
+Q_gas_top = 0.396  # L/min
 Q_air_mix = 2.736   # L/min
 
 # actual outlet conc.
@@ -56,10 +56,10 @@ outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
 
 
 # pH data 
-time = ["13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", 
-        "13:55", "14:00", "14:05", "14:10", "14:15", "14:20", "14:25"]
-pH   = [12.75, 12.75, 12.76, 12.76, 12.76, 12.76, 12.76,
-        12.76, 12.76, 12.76, 12.76, 12.76, 12.77,12.77]
+time = ["10:20", "10:25", "10:30", "10:35", "10:40", "10:45", "10:50", 
+        "10:55", "11:00", "11:05", "11:10", "11:15", "11:20"]
+pH   = [12.18, 12.17, 12.08, 12.00, 12.13, 12.08, 12.03,
+        12.12, 12.04, 12.08, 12.00, 12.03, 12.00]
 pH_data = pd.DataFrame({
     "time": time,
     "pH"  : pH
@@ -67,7 +67,7 @@ pH_data = pd.DataFrame({
 
 
 pH_data["Timestamp"] = pd.to_datetime(
-    "2026-04-16 " + pH_data["time"]
+    "2026-04-17 " + pH_data["time"]
 )
 
 
@@ -99,11 +99,11 @@ def modelrun(Q_g = 10,
              times = outlet_t_sec,
              frac_co2 = 0.05,
              Kga = 'onda',
-             wet_eff = 1,
              counter=True,
              recirc=True,
              enh_method='PFO',
-             constant_res_pH = True):
+             constant_res_pH = True,
+             wet_eff = 1):
     """
     A function for model running
     units of arguments:
@@ -117,7 +117,7 @@ def modelrun(Q_g = 10,
     ssa   = 260     # m2/m3
     nc    = 30
 
-    cg0 = 23
+    cg0 = 28
 
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
@@ -150,6 +150,7 @@ def modelrun(Q_g = 10,
 
     Kga = Kga
     # 0.023
+    wet_eff = wet_eff
 
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
@@ -168,7 +169,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff=wet_eff,
+        wet_eff = wet_eff,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -260,11 +261,11 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     print(f"Final pH        : {pH_final:.3f}")
     print("\n======================================\n")
 
-    print("\n====== Mass balance =======")
-    print(f'Gas in          :{m_gin}  mol/s')
-    print(f'Gas out         :{m_gout} mol/s')
-    print(f'liquid out      :{m_lout} mol/s')
-    print(f'Mass balance    :{mass_balance}')
+    # print("\n====== Mass balance =======")
+    # print(f'Gas in          :{m_gin}  mol/s')
+    # print(f'Gas out         :{m_gout} mol/s')
+    # print(f'liquid out      :{m_lout} mol/s')
+    # print(f'Mass balance    :{mass_balance}')
 
     print("\n====================================\n")
 
@@ -337,7 +338,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.plot(t, gas_outlet, 'r-', label = "Model")
     plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
     plt.ylabel('CO2 conc. [g/m3]')
-    plt.ylim(10,40)
+    # plt.ylim(10,40)
     plt.xlabel('Time [s]')
     plt.legend()
     plt.grid()
@@ -364,18 +365,18 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
 
     # ================= TOTC ===================== 
-    plt.figure(figsize=(6,5))
-    plt.title('TOTC vs position')
+    # plt.figure(figsize=(6,5))
+    # plt.title('TOTC vs position')
 
-    plt.plot(x, TOTC_plot[:,-1], label='Actual')
-    plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
-    plt.ylabel('TOTC [mol/m3]')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
+    # plt.plot(x, TOTC_plot[:,-1], label='Actual')
+    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    # plt.ylabel('TOTC [mol/m3]')
+    # plt.xlabel('Position [m]')
+    # plt.legend()
+    # plt.grid()
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
     # =================== Removal efficiency =========================
     plt.figure(figsize=(6,5))
@@ -395,9 +396,9 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 # this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
 frac_co2 = inlet_conc_actual/10**6
-results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
-                         pH = 12.904, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO',wet_eff=0.35,recirc = False,Kga='onda'
+results, cgin = modelrun(Q_g = 10.84, Q_l = 505.45,
+                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='PFO',recirc = True,Kga='onda',wet_eff=0.5
                          )
 
 result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')

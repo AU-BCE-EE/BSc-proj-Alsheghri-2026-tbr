@@ -217,15 +217,19 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     m_gout = res['m_gout']  # gas mol/s coming out 
     m_lout = res['m_lout']  # liq mol/s coming out
     m_tout = res['m_tout']  # tot mol/s coning out (m_gout + m_lout)
+
+    E_profile = res['E_profile']
     
     # outlet hanling 
     gas_outlet = gas[-1,:]
     if counter:
         liq_outlet = liq[0,:]
         pH_outlet  = pH[0,:]
+        E_outlet   = E_profile[0,:]
     else:
         liq_outlet = liq[-1,:]
         pH_outlet  = pH[-1,:]
+        E_outlet   = E_profile[-1,:]
 
     # ========= results processing =============
     gas_inlet       = float(cgin)
@@ -281,12 +285,14 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
         eq_plot     = eq[::-1,:]
         TOTC_plot   = TOTC[::-1,:]
         TOTCeq_plot = TOTC_eq[::-1,:]
+        E_plot      = E_profile[::-1,:] 
     else: 
         liq_plot    = liq
         pH_plot     = pH
         eq_plot     = eq
         TOTC_plot   = TOTC
         TOTCeq_plot = TOTC_eq
+        E_plot      = E_profile 
 
     # =================== plot style =====================
     mpl.rcParams['font.family'] = 'serif'
@@ -386,6 +392,20 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.ylim(0, 100)
     plt.grid()
     plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    # ======================== enhacement profile =================
+    plt.figure(figsize=(6,5))
+    plt.title('E vs position')
+
+    plt.plot(x, E_plot[:,-1])
+    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    plt.ylabel('Enhancement factor')
+    plt.xlabel('Position [m]')
+    plt.legend()
+    plt.grid()
+
     plt.tight_layout()
     plt.show()
 

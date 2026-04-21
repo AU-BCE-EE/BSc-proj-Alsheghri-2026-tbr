@@ -1,9 +1,15 @@
+"""
+Model validation with experimental data
+The pH in the reservoir was 
+"""
+
+
 import numpy as np
 import pandas as pd
 
 # import the data
 data = pd.read_csv(
-    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\16_04_2026_co2_measurements.csv",
+    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\09_04_2026_co2_measurements.csv",
     sep=';'
 )
 
@@ -11,18 +17,18 @@ data = pd.read_csv(
 data['Timestamp'] = pd.to_datetime(data['Timestamp'])
 
 # start and end for the inlet measurment
-start = "2026-04-16 13:00:18"
-end   = "2026-04-16 13:07:18"
+start = "2026-04-09 10:16:41"
+end   = "2026-04-09 10:21:41"
 
 # extract all the values in the interval
 inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
 
 # mean inlet conc.
 inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
-inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576 # here i used the devlabs calibration curve
+inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
 
-Q_gas_bund = 0.382  # L/min
-Q_air_mix = 2.736     # L/min
+Q_gas_bund = 0.387  # L/min
+Q_air_mix = 2.8     # L/min
 
 # Before the dilution
 inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
@@ -30,16 +36,16 @@ inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # pp
 
 
 # oulet concentrations
-start_out = "2026-04-16 13:15:18"
-end_out = "2026-04-16 14:27:18"
+start_out = "2026-04-09 10:27:41"
+end_out = "2026-04-09 12:08:41"
 outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
 
-Q_gas_top = 0.388  # L/min
-Q_air_mix = 2.736   # L/min
+Q_gas_top = 0.398  # L/min
+Q_air_mix = 3.0705   # L/min
 
 # actual outlet conc.
 outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
-outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576  # here i used the devlabs calibration curve
+outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576 
 temp   = 22.0           # Celcius
 pres   = 1.0            # bar
 M_co2 = 44.009          # g/mol
@@ -56,10 +62,9 @@ outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
 
 
 # pH data 
-time = ["13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", 
-        "13:55", "14:00", "14:05", "14:10", "14:15", "14:20", "14:25"]
-pH   = [12.75, 12.75, 12.76, 12.76, 12.76, 12.76, 12.76,
-        12.76, 12.76, 12.76, 12.76, 12.76, 12.77,12.77]
+time = ["11:00", "11:05", "11:10", "11:15", "11:20", "11:25", "11:30", 
+        "11:35", "11:40", "11:45", "11:50", "11:55", "12:00"]
+pH   = [12.88, 12.88, 12.88, 12.91, 12.90, 12.89, 12.89, 12.90, 12.90, 12.89, 12.89, 12.89, 12.89]
 pH_data = pd.DataFrame({
     "time": time,
     "pH"  : pH
@@ -67,7 +72,7 @@ pH_data = pd.DataFrame({
 
 
 pH_data["Timestamp"] = pd.to_datetime(
-    "2026-04-16 " + pH_data["time"]
+    "2026-04-09 " + pH_data["time"]
 )
 
 
@@ -82,7 +87,17 @@ removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_a
 
 
 
+# Time variable cgin
+# inlet_times = inlet['Timestamp']
+# inlet_t_sec = (inlet_times - t0).dt.total_seconds().to_numpy()
+# inlet_conc_actual_ppm = inlet['SCD30_CO2'] * (Q_gas_bund + Q_air_mix) / Q_gas_bund
+# inlet_conc_actual_gm3 = pres/(R*(temp+273.15)) * inlet_conc_actual/1e6 * M_co2
 
+# # now buld the cgin dataframe wich the rates can use to interpolate 
+# cgin_df = pd.DataFrame({
+#     "time"       : inlet_t_sec,
+#     "inlet_conc" : inlet_conc_actual_gm3
+# })
 
 
 import matplotlib.pyplot as plt
@@ -98,8 +113,8 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
+             wet_eff = 1.0,
              Kga = 'onda',
-             wet_eff = 1,
              counter=True,
              recirc=True,
              enh_method='PFO',
@@ -115,10 +130,9 @@ def modelrun(Q_g = 10,
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 30
+    nc    = 60
 
-    cg0 = 23
-
+    cg0 = 9.9
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
     clin_co2  = 0.0
@@ -148,9 +162,10 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    Kga = Kga
-    # 0.023
-
+    wet_eff = wet_eff
+    # Kga = 0.02286
+    Kga = Kga # onda would work if we added a wetting efficiency in the ae equation in the model
+    # but the wetting efficiency would be low around 0.105
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
     # cgin = cgin_df
@@ -168,7 +183,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff=wet_eff,
+        wet_eff = wet_eff,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -202,15 +217,19 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     m_gout = res['m_gout']  # gas mol/s coming out 
     m_lout = res['m_lout']  # liq mol/s coming out
     m_tout = res['m_tout']  # tot mol/s coning out (m_gout + m_lout)
+
+    E_profile = res['E_profile']
     
     # outlet hanling 
     gas_outlet = gas[-1,:]
     if counter:
         liq_outlet = liq[0,:]
         pH_outlet  = pH[0,:]
+        E_outlet   = E_profile[0,:]
     else:
         liq_outlet = liq[-1,:]
         pH_outlet  = pH[-1,:]
+        E_outlet   = E_profile[-1,:]
 
     # ========= results processing =============
     gas_inlet       = float(cgin)
@@ -234,16 +253,6 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
     gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
     gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-
-
-    # Root mean squared error
-    RMSE = np.sqrt(np.mean((gas_outlet-outlet_conc_lab)**2))
-
-    # Mean absolut error 
-    MAE = np.mean(np.abs(gas_outlet-outlet_conc_lab))
-
-    # Mean bias error 
-    MBE = np.mean(gas_outlet-outlet_conc_lab)
     # ===== print results ========
 
     print(f'\n===== {label} ======\n')
@@ -268,11 +277,6 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
     print("\n====================================\n")
 
-    print(f'The RMSE is {RMSE:.4f}')
-    print(f'The MBE is {MBE:.4f}')
-    print("\n====================================\n")
-
-
 
     # ================ flip for counter-current ================
     if counter:
@@ -281,12 +285,14 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
         eq_plot     = eq[::-1,:]
         TOTC_plot   = TOTC[::-1,:]
         TOTCeq_plot = TOTC_eq[::-1,:]
+        E_plot      = E_profile[::-1,:] 
     else: 
         liq_plot    = liq
         pH_plot     = pH
         eq_plot     = eq
         TOTC_plot   = TOTC
         TOTCeq_plot = TOTC_eq
+        E_plot      = E_profile 
 
     # =================== plot style =====================
     mpl.rcParams['font.family'] = 'serif'
@@ -337,7 +343,6 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.plot(t, gas_outlet, 'r-', label = "Model")
     plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
     plt.ylabel('CO2 conc. [g/m3]')
-    plt.ylim(10,40)
     plt.xlabel('Time [s]')
     plt.legend()
     plt.grid()
@@ -368,7 +373,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.title('TOTC vs position')
 
     plt.plot(x, TOTC_plot[:,-1], label='Actual')
-    plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
     plt.ylabel('TOTC [mol/m3]')
     plt.xlabel('Position [m]')
     plt.legend()
@@ -390,14 +395,31 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.tight_layout()
     plt.show()
 
+    # ======================== enhacement profile =================
+    plt.figure(figsize=(6,5))
+    plt.title('E vs position')
+
+    plt.plot(x, E_plot[:,-1])
+    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
+    plt.ylabel('Enhancement factor')
+    plt.xlabel('Position [m]')
+    plt.legend()
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
+
 
 # There is one msitake in the model and it is pH, it is shifted upwards with 0.096
 # this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
 frac_co2 = inlet_conc_actual/10**6
-results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
-                         pH = 12.904, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO',wet_eff=0.35,recirc = False,Kga='onda'
+results, cgin = modelrun(Q_g = 10.84, Q_l = 220,
+                         pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=False,
+                         enh_method='PFO', wet_eff = 0.4, Kga = 'onda',recirc=True,vres=5
                          )
+
+# Kga = 0.0228
+
 
 result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')

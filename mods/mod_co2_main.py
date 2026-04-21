@@ -159,6 +159,7 @@ def rates(t, n,
           E = 1
 
       Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k3 * np.maximum(c_oh,1e-10) * por_l) # reference p181 in Seader et al book (resistance in serie two film)
+    #   Rtot = 1 / (kg * ae) + Daw / (kl * ae * E)  # skl man bruge den her i stedet for så man ikke dobbelt tæller reaktionen?? 
       Kga  = 1 / Rtot # overall mass transfer coefficient
     #   breakpoint()
 
@@ -594,6 +595,50 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
    # OH profile
    c_oh_prof = KW/(c_h_profile/1000) * 1000
 
+   # =========================== ehancement factor profile ============
+   g      = 9.81                   # m / sec^2
+   Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
+   Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
+   sigm_c = 0.072                   # critical surface tension
+   sigm_l = 0.072                 # surface tension
+   mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
+   dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
+
+    # empirical correlation for particle diameter
+   if dp < 15:
+        dp_emp = 2.0
+   else:
+        dp_emp = 5.23
+
+   dens_g = pres * mw_g / (R * TK) # g/L = kg/m3     # density of gas 
+   visc_g = 9.1E-8 * TK - 1.16E-5                    # empirical relation for gas viscosity vs TK
+   visc_l = -2.55E-5 * TK + 8.51E-3                  # liquid viscosity 
+
+    # Dimensionless numbers 
+   Re = dens_l * v_l / (ssa * visc_l)                # reynold
+   Fr = v_l * v_l * ssa / g                          # Froude number
+   We = v_l * v_l * dens_l / (sigm_l * ssa)          # Weber number
+
+    # some effective area for mass transfer? 
+   ae = ssa * (1.0-2.71828**(-1.45 * (sigm_c / sigm_l)**0.75 *
+                            Re**0.1 * Fr**-0.05 * We**0.2)) * wet_eff
+
+    #gas phase resistance
+   kg = dp_emp * (v_g * dens_g / (ssa * visc_g))**0.7 \
+        * (visc_g / (dens_g * Dg))**(1 / 3) * (ssa * dp)**-2 * ssa * Dg
+
+    #liquid phase resistance
+   kl = 0.0051 * (v_l * dens_l / (ae * visc_l))**(2/3) * (visc_l / (dens_l * Dliq))**(-0.5) * (ssa * dp)**0.4 * (dens_l / (visc_l * g))**(-1/3)
+   E = em.enh_fac(
+              c_oh   = c_oh_prof,
+              c_co2  = 1,
+              k      = k3,
+              K      = K4,
+              kl     = kl,
+              method = enh_method
+              )
+   # ================================== # 
+
    # Return results as a dictionary
    return {'gas_conc'    : molpm3_to_gpm3(ccgt,M_co2),
           'co2_liq_conc' : molpm3_to_gpm3(ccl_co2t,M_co2),
@@ -609,4 +654,5 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
           'eq_conc'      : molpm3_to_gpm3(ccl_co2t_eq, M_co2),
           'TOTC_eq'      : TOTC_eq,
           'c_oh'         : c_oh_prof,
+          'E_profile'    : E,
           'pars'         : {'gas_rt': rt_gas, 'liq_rt': rt_liq, 'Kga': Kga, 'Kaw': Kaw, 'ae':ae,'kg':kg,'kl':kl}}
