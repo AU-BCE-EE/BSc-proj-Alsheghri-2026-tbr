@@ -112,7 +112,7 @@ def modelrun(Q_g = 10,
     """
     #========= fixed parameters ==========# 
     L     = 0.3       # m
-    por_g = 0.91
+    por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
     nc    = 30
@@ -228,7 +228,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
 
     # gas concnetration in ppm 
-    temp   = 25.0    # Celcius
+    temp   = 22.0    # Celcius
     pres   = 1.0     # bar
     R      = 8.314e-5        # m3 * bar / K-mol
     M_co2  = 44.009          # g/mol
@@ -398,7 +398,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.45,
                          pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO',recirc = True,Kga='onda',wet_eff=0.5
+                         enh_method='PFO',recirc = True,Kga='onda',wet_eff=1
                          )
 
 result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')

@@ -28,7 +28,7 @@ inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the r
 inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
 
 Q_gas_bund = 0.387  # L/min
-Q_air_mix = 2.8     # L/min
+Q_air_mix = 3.0705     # L/min
 
 # Before the dilution
 inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
@@ -87,7 +87,7 @@ v_g = (Q_g_lmin * 1e-3 / 60) / Area
 v_l = (Q_l_mlmin * 1e-6 / 60) / Area
 cgin = pres / ((temp + 273.15) * R) * (inlet_conc_actual / 1e6) * M_co2
 
-L, por_g, por_l, ssa, wet_eff = 0.3, 0.91, 0.05, 260, 0.5
+L, por_g, por_l, ssa, wet_eff = 0.3, 0.91, 0.05, 260, 0.9
 ssa_eff = ssa * wet_eff
 TK = temp + 273.15
 k_molar = 4.315 * 10**13 * np.exp(-6666/TK) 

@@ -55,7 +55,7 @@ def rates(t, mc, v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot, k, pH, Kga, v_
       g = 9.81        # m / sec^2
       Dg = 1.16E-5    # gas diffusion coefficient in m2 / sec; compound specific      # changed
       Dliq = 1.89E-9   # liquid diffusion coefficient                                  # changed
-      sigm_c = 0.072   # critical surface tension
+      sigm_c = 0.029   # critical surface tension
       sigm_l = 0.072 # surface tension
       R = 0.083144    # Gas constant (L bar / K-mol)
       mw_g = 28.97    # Air (gas mix) molecular weight (molar mass) (g/mol)

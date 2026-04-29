@@ -67,8 +67,8 @@ def rates(t, n,
 
   # Concentrations (mol/m3)
   ccg     = ncg    / vol_gas                  # CO2 in the gas phase mol/m3                                                                 ## CHANGE
-  c_co2   = n_co2  / vol_liq                  # CO2 in the liquid phase mol/m3   
-  c_TOTC  = n_TOTC / vol_liq                  # TOTC in the liquid phase mol/m3
+  c_co2   = np.maximum(n_co2  / vol_liq, 0)                  # CO2 in the liquid phase mol/m3   
+  c_TOTC  = np.maximum(n_TOTC / vol_liq, 0)                # TOTC in the liquid phase mol/m3
 
   # integrating the speciation model: 
   c_h2co3 = np.zeros(nc)
@@ -106,15 +106,16 @@ def rates(t, n,
   if isinstance(Kga,str) and Kga.lower() == 'onda':
       # Hard-wired constants
       g      = 9.81                   # m / sec^2
-      Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
+      Dg     = 1.6E-5                 # gas diffusion coefficient in m2 / sec; compound specific     
       Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
-      sigm_c = 0.072                  # critical surface tension
+      sigm_c = 0.029                  # critical surface tension (https://askfilo.com/user-question-answers-biology/table-1-critical-surface-tension-values-for-common-polymeric-38323539333234)
       sigm_l = 0.072                  # surface tension
       mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
-      dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
+      dp     = 6 * (1 - (por_g+por_l)) / ssa  # characteristic packing length (m) (https://beckassets.blob.core.windows.net/product/readingsample/10075882/9783642262067_excerpt_001.pdf)
+ 
 
       # empirical correlation for particle diameter
-      if dp < 15:
+      if (dp*1000) < 15:
           dp_emp = 2.0
       else:
           dp_emp = 5.23
@@ -129,7 +130,7 @@ def rates(t, n,
       We = v_l * v_l * dens_l / (sigm_l * ssa)          # Weber number
       
       # some effective area for mass transfer? 
-      ae = ssa * (1.0-2.71828**(-1.45 * (sigm_c / sigm_l)**0.75 *
+      ae = ssa * (1.0-np.exp(-1.45 * (sigm_c / sigm_l)**0.75 *
                               Re**0.1 * Fr**-0.05 * We**0.2)) * wet_eff
      
       #gas phase resistance
@@ -157,7 +158,7 @@ def rates(t, n,
               )
       else:
           E = 1
-
+# Remove the last term
       Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k3 * np.maximum(c_oh,1e-10) * por_l) # reference p181 in Seader et al book (resistance in serie two film)
     #   Rtot = 1 / (kg * ae) + Daw / (kl * ae * E)  # skl man bruge den her i stedet for så man ikke dobbelt tæller reaktionen?? 
       Kga  = 1 / Rtot # overall mass transfer coefficient
@@ -538,7 +539,9 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
                            k1, k2, k3, K4, K_hco3, K_co3, KW, ex_oh, Kga, v_res,
                            temp, henry, pres, ssa, dens_l, por_l, por_g, wet_eff, counter, recirc,
                            enh_method, constant_res_pH),
-                   method = 'BDF')
+                   method = 'BDF',
+                   rtol = 1e-6,
+                   atol = 1e-9)
    
    # Extract moles of compound [position, time]
    ncgt      = out.y[0        : nc]       
@@ -594,37 +597,37 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
 
    # =========================== ehancement factor profile ============
    g      = 9.81                   # m / sec^2
-   Dg     = 1.16E-5                # gas diffusion coefficient in m2 / sec; compound specific     
+   Dg     = 1.6E-5                 # gas diffusion coefficient in m2 / sec; compound specific       
    Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
-   sigm_c = 0.072                   # critical surface tension
-   sigm_l = 0.072                 # surface tension
+   sigm_c = 0.029                  # critical surface tension
+   sigm_l = 0.072                  # surface tension
    mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
-   dp     = 6 * (1 - por_g) / ssa  # characteristic packing length
+   dp     = 6 * (1 - por_g) / ssa  # characteristic packing length (m)
 
-    # empirical correlation for particle diameter
-   if dp < 15:
-        dp_emp = 2.0
+      # empirical correlation for particle diameter
+   if (dp*1000) < 15:
+          dp_emp = 2.0
    else:
-        dp_emp = 5.23
+          dp_emp = 5.23
 
    dens_g = pres * mw_g / (R * TK) # g/L = kg/m3     # density of gas 
    visc_g = 9.1E-8 * TK - 1.16E-5                    # empirical relation for gas viscosity vs TK
    visc_l = -2.55E-5 * TK + 8.51E-3                  # liquid viscosity 
 
-    # Dimensionless numbers 
+      # Dimensionless numbers 
    Re = dens_l * v_l / (ssa * visc_l)                # reynold
    Fr = v_l * v_l * ssa / g                          # Froude number
    We = v_l * v_l * dens_l / (sigm_l * ssa)          # Weber number
-
-    # some effective area for mass transfer? 
-   ae = ssa * (1.0-2.71828**(-1.45 * (sigm_c / sigm_l)**0.75 *
-                            Re**0.1 * Fr**-0.05 * We**0.2)) * wet_eff
-
-    #gas phase resistance
+      
+      # some effective area for mass transfer? 
+   ae = ssa * (1.0-np.exp(-1.45 * (sigm_c / sigm_l)**0.75 *
+                              Re**0.1 * Fr**-0.05 * We**0.2)) * wet_eff
+     
+      #gas phase resistance
    kg = dp_emp * (v_g * dens_g / (ssa * visc_g))**0.7 \
-        * (visc_g / (dens_g * Dg))**(1 / 3) * (ssa * dp)**-2 * ssa * Dg
-
-    #liquid phase resistance
+          * (visc_g / (dens_g * Dg))**(1 / 3) * (ssa * dp)**-2 * ssa * Dg
+      
+      #liquid phase resistance
    kl = 0.0051 * (v_l * dens_l / (ae * visc_l))**(2/3) * (visc_l / (dens_l * Dliq))**(-0.5) * (ssa * dp)**0.4 * (dens_l / (visc_l * g))**(-1/3)
    E = em.enh_fac(
               c_oh   = c_oh_prof,

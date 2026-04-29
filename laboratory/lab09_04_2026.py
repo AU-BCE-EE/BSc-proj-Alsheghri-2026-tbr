@@ -28,7 +28,7 @@ inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the r
 inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
 
 Q_gas_bund = 0.387  # L/min
-Q_air_mix = 2.8     # L/min
+Q_air_mix = 3.0705     # L/min
 
 # Before the dilution
 inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
@@ -113,7 +113,7 @@ def modelrun(Q_g = 10,
     """
     #========= fixed parameters ==========# 
     L     = 0.3       # m
-    por_g = 0.91
+    por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
     nc    = 60
@@ -150,8 +150,7 @@ def modelrun(Q_g = 10,
 
     wet_eff = wet_eff
     # Kga = 0.02286
-    Kga = Kga # onda would work if we added a wetting efficiency in the ae equation in the model
-    # but the wetting efficiency would be low around 0.105
+    Kga = Kga 
     v_res = vres/1000/A
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2 # g/m3
     # cgin = cgin_df
@@ -232,7 +231,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 
 
     # gas concnetration in ppm 
-    temp   = 25.0    # Celcius
+    temp   = 22.0    # Celcius
     pres   = 1.0     # bar
     R      = 8.314e-5        # m3 * bar / K-mol
     M_co2  = 44.009          # g/mol
@@ -330,6 +329,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
     plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
     plt.ylabel('CO2 conc. [g/m3]')
     plt.xlabel('Time [s]')
+    # plt.ylim(8,13)
     plt.legend()
     plt.grid()
     
@@ -401,7 +401,7 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 12.914, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', wet_eff = 0.5, Kga = 'onda',recirc=True
+                         enh_method='PFO', wet_eff = 1, Kga = 'onda',recirc=True
                          )
 
 # Kga = 0.0228
