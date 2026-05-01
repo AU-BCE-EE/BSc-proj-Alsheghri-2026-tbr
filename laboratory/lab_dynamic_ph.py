@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd 
 
 
-# inlet data 
+# =============================== inlet data  =======================
 inlet_data = pd.read_csv(
     r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\23_04_2026_inlet_co2_measurements.csv",
     sep = ';')
@@ -46,7 +46,7 @@ cgin_df = pd.DataFrame({
 })
 
 
-# Now the outlet data. 
+# ======================== Now the outlet data.  ===================
 
 outlet_data = pd.read_csv(
     r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\23_04_2026_outlet_co2_measurements.csv",
@@ -79,7 +79,7 @@ R     = 8.314e-5        # m3 * bar / K-mol
 
 outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
 
-
+# ======================================= pH =============================00
 # pH data from 23/4 inlet experiment 
 # time = ["9:06", "9:09", "9:12", "9:15", "9:19", "9:22", "9:25", "9:28",
 #         "9:31", "9:34", "9:37", "9:40", "9:43", "9:46", "9:49", "9:52",
@@ -119,6 +119,7 @@ pH_data = pd.DataFrame({
 pH_data["Timestamp"] = pd.to_datetime("2026-04-23 " + pH_data["time"])
 pH_data['t_sec'] = (pH_data['Timestamp'] - outlet['Timestamp'].iloc[0]).dt.total_seconds()
 
+# ============================================= #
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
 import importlib
@@ -261,14 +262,15 @@ plt.show()
 
 # time
 plt.figure(figsize=(12, 5))
+plt.suptitle('Ql = 220.6 mL/min , Qg = 10.8 L/min, We = 0.65 \n pH = 12.88(dynamic no adjusting)')
 plt.subplot(1,2,1)
 plt.title('Gas concentraion at the outlet vs time')
 plt.plot(t, gas[-1,:], 'r-', label = "Model")
-plt.plot(outlet['t_sec'], outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
+plt.plot(outlet['t_sec'], outlet_conc_gm3, 'bo', label = "Experimental", markersize = 2 )
 plt.ylabel('CO2 conc. [g/m3]')
 plt.xlabel('Time [s]')
 plt.legend()
-plt.grid()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
 
 plt.subplot(1,2,2)
 plt.title('pH at the outlet vs time')
@@ -277,7 +279,7 @@ plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize 
 plt.ylabel('pH')
 plt.xlabel('time[s]')
 plt.legend()
-plt.grid()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
 
 plt.tight_layout()
 plt.show()

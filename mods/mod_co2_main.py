@@ -158,9 +158,8 @@ def rates(t, n,
               )
       else:
           E = 1
-# Remove the last term
-      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k3 * np.maximum(c_oh,1e-10) * por_l) # reference p181 in Seader et al book (resistance in serie two film)
-    #   Rtot = 1 / (kg * ae) + Daw / (kl * ae * E)  # skl man bruge den her i stedet for så man ikke dobbelt tæller reaktionen?? 
+
+      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) # reference p181 in Seader et al book (resistance in serie two film)
       Kga  = 1 / Rtot # overall mass transfer coefficient
     #   breakpoint()
 

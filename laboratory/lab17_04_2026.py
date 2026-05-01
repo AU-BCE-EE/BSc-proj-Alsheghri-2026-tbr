@@ -115,7 +115,7 @@ def modelrun(Q_g = 10,
     por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 30
+    nc    = 60
 
     cg0 = 28
 
@@ -395,10 +395,89 @@ def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimenta
 # There is one msitake in the model and it is pH, it is shifted upwards with 0.096
 # this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
+# frac_co2 = inlet_conc_actual/10**6
+# results, cgin = modelrun(Q_g = 10.84, Q_l = 505.45,
+#                          pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+#                          enh_method='DC',recirc = True,Kga='onda',wet_eff=1
+#                          )
+
+
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.45,
                          pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO',recirc = True,Kga='onda',wet_eff=1
+                         enh_method='PFO',wet_eff=1, recirc = True, Kga='onda'
                          )
 
-result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')
+results_2,cgin_2 = modelrun(Q_g = 10.84, Q_l = 505.45,
+                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='DC',wet_eff=1, recirc = True, Kga='onda'
+                         )
+
+
+gas_1 = results['gas_conc']
+pH_1 = results['pH_profile']
+x_1       = results['cell_pos'] 
+t_1       = results['time']
+
+pH_outlet_1  = pH_1[0,:]
+gas_outlet_1 = gas_1[-1,:]
+
+removal_eff_vs_t_1 = 100 * (cgin - gas_outlet_1) / cgin
+
+gas_2 = results_2['gas_conc']
+pH_2 = results_2['pH_profile']
+x_2       = results_2['cell_pos'] 
+t_2       = results_2['time']
+
+pH_outlet_2  = pH_2[0,:]
+gas_outlet_2 = gas_2[-1,:]
+
+removal_eff_vs_t_2 = 100 * (cgin_2 - gas_outlet_2) / cgin_2
+
+mpl.rcParams['font.family'] = 'serif'
+mpl.rcParams['font.serif'] = ['Garamond']
+mpl.rcParams['axes.linewidth'] = 1
+mpl.rcParams['axes.labelsize'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['xtick.labelsize'] = 11
+mpl.rcParams['ytick.labelsize'] = 11
+mpl.rcParams['legend.fontsize'] = 11
+
+
+plt.figure(figsize=(12, 5))
+plt.suptitle('pH = 12.5, Ql = 505.5 mL/min , Qg = 10.8 L/min', fontsize = 14)
+plt.subplot(1,3,1)
+plt.title('(a) Gas concentraion at the outlet vs time')
+plt.plot(t_1, gas_outlet_1, 'r-', label = "Model, E = PFO")
+plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, E = Decursey")
+plt.plot(t_1, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
+plt.ylabel('CO2 conc. [g/m3]')
+# plt.ylim(15,25)
+plt.xlabel('Time [s]')
+plt.legend()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+
+
+plt.subplot(1,3,2)
+plt.title('(b) pH at the outlet vs time')
+plt.plot(t_1, pH_outlet_1, 'r-', label = "Model, E = PFO")
+plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, E = Decursey")
+plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
+plt.ylabel('pH')
+plt.xlabel('Time[s]')
+plt.legend()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+
+plt.subplot(1,3,3)
+plt.title('(c) CO2 removal efficiency vs time')
+plt.plot(t_1, removal_eff_vs_t_1, 'r-', linewidth=1.8, label = 'Model, E = PFO')
+plt.plot(t_2, removal_eff_vs_t_2, 'k-', linewidth=1.8, label = 'Model, E = Decursey')
+plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
+plt.ylabel('Removal efficiency [%]')
+plt.xlabel('Time [s]')
+plt.ylim(0, 100)
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6 )
+plt.legend()
+
+plt.tight_layout()
+plt.show()

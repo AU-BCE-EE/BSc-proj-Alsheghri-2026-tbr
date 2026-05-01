@@ -175,232 +175,95 @@ def modelrun(Q_g = 10,
 
     return results, cgin
 
-
-def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimental, label):
-    """
-    A function for result processing
-    """
-
-    # ===== extract the results ====== #
-    gas     = res[  'gas_conc'   ]
-    liq     = res['co2_liq_conc' ]
-    TOTC    = res['TOTC_liq_conc']
-    eq      = res[   'eq_conc'   ]    
-    pH      = res[  'pH_profile' ]
-    TOTC_eq = res[   'TOTC_eq'   ]
-    x       = res[  'cell_pos'   ] 
-    t       = res[    'time'     ]
-
-
-    counter = res['inputs']['counter']
-    recirc  = res['inputs']['recirc']
-  
-    m_gin  = res['m_gin']   # gas mol/s coming in
-    m_gout = res['m_gout']  # gas mol/s coming out 
-    m_lout = res['m_lout']  # liq mol/s coming out
-    m_tout = res['m_tout']  # tot mol/s coning out (m_gout + m_lout)
-
-    E_profile = res['E_profile']
-    
-    # outlet hanling 
-    gas_outlet = gas[-1,:]
-    if counter:
-        liq_outlet = liq[0,:]
-        pH_outlet  = pH[0,:]
-        E_outlet   = E_profile[0,:]
-    else:
-        liq_outlet = liq[-1,:]
-        pH_outlet  = pH[-1,:]
-        E_outlet   = E_profile[-1,:]
-
-    # ========= results processing =============
-    gas_inlet       = float(cgin)
-    gas_out_initial = gas_outlet[0]
-    gas_out_final   = gas_outlet[-1]
-
-    removal_eff_final = 100 * (gas_inlet - gas_out_final) / gas_inlet
-    removal_eff_vs_t  = 100 * (gas_inlet - gas_outlet) / gas_inlet
-
-    pH_initial = pH_outlet[0]
-    pH_final   = pH_outlet[-1]
-
-    mass_balance = m_tout - m_gin
-
-
-    # gas concnetration in ppm 
-    temp   = 22.0    # Celcius
-    pres   = 1.0     # bar
-    R      = 8.314e-5        # m3 * bar / K-mol
-    M_co2  = 44.009          # g/mol
-
-    gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    # ===== print results ========
-
-    print(f'\n===== {label} ======\n')
-
-    print(f"\nGas inlet CO2               : {gas_inlet:.2f} g/m3")
-    print(f"Gas inlet ppm                 : {gas_inlet_ppm:.2f}")
-    print(f"Gas outlet initial            : {gas_out_initial:.2f} g/m3")
-    print(f"Gas outlet final              : {gas_out_final:.2f} g/m3")
-    print(f"Gas outlet final in ppm       : {gas_out_final_ppm:.2f}")
-    print(f"Final CO2 removal efficiency  : {removal_eff_final:.2f} %")
-
-    print("\n--- pH ---")
-    print(f"Initial pH      : {pH_initial:.3f}")
-    print(f"Final pH        : {pH_final:.3f}")
-    print("\n======================================\n")
-
-    print("\n====== Mass balance =======")
-    print(f'Gas in          :{m_gin}  mol/s')
-    print(f'Gas out         :{m_gout} mol/s')
-    print(f'liquid out      :{m_lout} mol/s')
-    print(f'Mass balance    :{mass_balance}')
-
-    print("\n====================================\n")
-
-
-    # ================ flip for counter-current ================
-    if counter:
-        liq_plot    = liq[::-1,:]
-        pH_plot     = pH[::-1,:]
-        eq_plot     = eq[::-1,:]
-        TOTC_plot   = TOTC[::-1,:]
-        TOTCeq_plot = TOTC_eq[::-1,:]
-        E_plot      = E_profile[::-1,:] 
-    else: 
-        liq_plot    = liq
-        pH_plot     = pH
-        eq_plot     = eq
-        TOTC_plot   = TOTC
-        TOTCeq_plot = TOTC_eq
-        E_plot      = E_profile 
-
-    # =================== plot style =====================
-    mpl.rcParams['font.family'] = 'serif'
-    mpl.rcParams['font.serif'] = ['Garamond']
-    mpl.rcParams['axes.linewidth'] = 1
-    mpl.rcParams['axes.labelsize'] = 12
-    mpl.rcParams['axes.titlesize'] = 14
-    mpl.rcParams['xtick.labelsize'] = 11
-    mpl.rcParams['ytick.labelsize'] = 11
-    mpl.rcParams['legend.fontsize'] = 11    
-
-    # ================= position profile =================
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1,3,1)
-    plt.title('gas conc. vs position')
-    plt.plot(x, gas[:,-1], 'b-', linewidth = 1.8) 
-    plt.ylabel('Gas conc [g/m3]')
-    plt.xlabel('Position [m]')
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.grid()
-
-    plt.subplot(1,3,2)
-    plt.title('liq CO2 conc. vs position')
-    plt.plot(x, liq_plot[:,-1], 'g-', label = 'Actual', linewidth = 1.8)
-    plt.plot(x, eq_plot[:,-1], '--', label = 'Equlibrium', linewidth = 1.8)
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
-
-    plt.subplot(1,3,3)
-    plt.title('pH vs position')
-    plt.plot(x, pH_plot[:,-1], 'r-', linewidth = 1.8)
-    plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-    plt.ylabel('pH value')
-    plt.xlabel('Position [m]')
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-    # =============== time plots ======================
-
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1,3,1)
-    plt.title('Gas concentraion at the outlet vs time')
-    plt.plot(t, gas_outlet, 'r-', label = "Model")
-    plt.plot(t, outlet_conc_lab, 'bo', label = "Experimental", markersize = 3 )
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('Time [s]')
-    plt.legend()
-    plt.grid()
-    
-    plt.subplot(1,3,2)
-    plt.title('liquid concentraion at the outlet vs time')
-    plt.plot(t, liq_outlet)
-    plt.ylabel('CO2 conc. [g/m3]')
-    plt.xlabel('t[s]')
-    plt.legend()
-    plt.grid()
-
-    plt.subplot(1,3,3)
-    plt.title('pH at the outlet vs time')
-    plt.plot(t, pH_outlet, 'r-', label = "Model")
-    plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
-    plt.ylabel('pH')
-    plt.xlabel('time[s]')
-    plt.legend()
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-
-    # ================= TOTC ===================== 
-    plt.figure(figsize=(6,5))
-    plt.title('TOTC vs position')
-
-    plt.plot(x, TOTC_plot[:,-1], label='Actual')
-    # plt.plot(x, TOTCeq_plot[:,-1], '--', label='Equilibrium')
-    plt.ylabel('TOTC [mol/m3]')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-    # =================== Removal efficiency =========================
-    plt.figure(figsize=(6,5))
-    plt.title('CO2 removal efficiency vs time')
-    plt.plot(t, removal_eff_vs_t, 'r-', linewidth=1.8, label = 'Model')
-    plt.plot(t,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
-    plt.ylabel('Removal efficiency [%]')
-    plt.xlabel('Time [s]')
-    plt.ylim(0, 100)
-    plt.grid()
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-    # ======================== enhacement profile =================
-    plt.figure(figsize=(6,5))
-    plt.title('E vs position')
-
-    plt.plot(x, E_plot[:,-1])
-    plt.ylabel('Enhancement factor')
-    plt.xlabel('Position [m]')
-    plt.legend()
-    plt.grid()
-
-    plt.tight_layout()
-    plt.show()
-
-
 # There is one msitake in the model and it is pH, it is shifted upwards with 0.096
 # this means if you want pH = 13 you have to set it to 12.904, this should be fixed in the model.
 
-frac_co2 = inlet_conc_actual/10**6
-results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
-                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', wet_eff = 0.65, Kga = 'onda',recirc=True
-                         )
+# frac_co2 = inlet_conc_actual/10**6
+# results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
+#                          pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+#                          enh_method='DC', wet_eff = 0.65, Kga = 'onda',recirc=True
+#                          )
 
 # Kga = 0.0228
 
 
-result_processing(results,cgin, outlet_conc_gm3,removal_efficiency_experimental,'Lab')
+
+frac_co2 = inlet_conc_actual/10**6
+results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
+                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='DC',wet_eff=1, recirc = False, Kga='onda'
+                         )
+
+results_2,cgin_2 = modelrun(Q_g = 10.84, Q_l = 220.645,
+                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='DC',wet_eff=0.65, recirc = False, Kga='onda'
+                         )
+
+
+gas_1 = results['gas_conc']
+pH_1 = results['pH_profile']
+x_1       = results['cell_pos'] 
+t_1       = results['time']
+
+pH_outlet_1  = pH_1[0,:]
+gas_outlet_1 = gas_1[-1,:]
+
+removal_eff_vs_t_1 = 100 * (cgin - gas_outlet_1) / cgin
+
+gas_2 = results_2['gas_conc']
+pH_2 = results_2['pH_profile']
+x_2       = results_2['cell_pos'] 
+t_2       = results_2['time']
+
+pH_outlet_2  = pH_2[0,:]
+gas_outlet_2 = gas_2[-1,:]
+
+removal_eff_vs_t_2 = 100 * (cgin_2 - gas_outlet_2) / cgin_2
+
+mpl.rcParams['font.family'] = 'serif'
+mpl.rcParams['font.serif'] = ['Garamond']
+mpl.rcParams['axes.linewidth'] = 1
+mpl.rcParams['axes.labelsize'] = 12
+mpl.rcParams['axes.titlesize'] = 14
+mpl.rcParams['xtick.labelsize'] = 11
+mpl.rcParams['ytick.labelsize'] = 11
+mpl.rcParams['legend.fontsize'] = 11
+
+
+plt.figure(figsize=(12, 5))
+plt.suptitle('pH = 12.5, Ql = 220.6 mL/min , Qg = 10.8 L/min', fontsize = 14)
+plt.subplot(1,3,1)
+plt.title('(a) Gas concentraion at the outlet vs time')
+plt.plot(t_1, gas_outlet_1, 'r-', label = "Model")
+plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, We = 0.65")
+plt.plot(t_1, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
+plt.ylabel('CO2 conc. [g/m3]')
+# plt.ylim(15,25)
+plt.xlabel('Time [s]')
+plt.legend()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+
+
+plt.subplot(1,3,2)
+plt.title('(b) pH at the outlet vs time')
+plt.plot(t_1, pH_outlet_1, 'r-', label = "Model")
+plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, We = 0.65")
+plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
+plt.ylabel('pH')
+plt.xlabel('Time[s]')
+plt.legend()
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+
+plt.subplot(1,3,3)
+plt.title('(c) CO2 removal efficiency vs time')
+plt.plot(t_1, removal_eff_vs_t_1, 'r-', linewidth=1.8, label = 'Model')
+plt.plot(t_2, removal_eff_vs_t_2, 'k-', linewidth=1.8, label = 'Model, We = 0.65')
+plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
+plt.ylabel('Removal efficiency [%]')
+plt.xlabel('Time [s]')
+plt.ylim(0, 100)
+plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6 )
+plt.legend()
+
+plt.tight_layout()
+plt.show()
