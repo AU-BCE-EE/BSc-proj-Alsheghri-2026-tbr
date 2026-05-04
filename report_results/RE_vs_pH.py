@@ -178,8 +178,11 @@ def modelrun(Q_g = 10,
     R     = 8.314e-5        # m3 * bar / K-mol
 
     # ================= Derived values =================
-
-    ex_oh = 10**(-(14-pH)) * 1000 # mol/m3
+    TK_run  = temp + 273.15
+    KW_run  = 10**(-4.2195 - 2915.16 / TK_run)   # same formula as tfmod
+    c_h_run = 10**(-pH)                           # mol/L
+    # Charge balance for NaOH solution: [Na+] = [OH-] - [H+]
+    ex_oh   = (KW_run / c_h_run - c_h_run) * 1000  # mol/m3
 
     # cross sectional area of the reactor
     A = (np.pi*D**2)/4   # m2
@@ -218,7 +221,6 @@ def modelrun(Q_g = 10,
     return results,cgin
 
 pH_span = np.array([12.0, 12.2, 12.4, 12.5, 12.6, 12.8, 12.9, 13.01, 13.2, 13.4, 13.6, 13.8, 14])
-pH_span = pH_span - 0.096
 removal_list =[]
 for pH in pH_span:
     frac_co2 = 0.023671337124733516
@@ -233,7 +235,7 @@ for pH in pH_span:
     removal = 100 * (gas_in - gas_out) / gas_in
     removal_list.append(removal[-1])
 
-pH_span_plot = pH_span +0.096
+pH_span_plot = pH_span
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = ['Garamond']
 mpl.rcParams['axes.linewidth'] = 1

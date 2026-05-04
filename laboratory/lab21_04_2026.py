@@ -137,7 +137,11 @@ def modelrun(Q_g = 10,
 
     # ================= Derived values =================
 
-    ex_oh = 10**(-(14-pH)) * 1000 # mol/m3
+    TK_run  = temp + 273.15
+    KW_run  = 10**(-4.2195 - 2915.16 / TK_run)   # same formula as tfmod
+    c_h_run = 10**(-pH)                           # mol/L
+    # Charge balance for NaOH solution: [Na+] = [OH-] - [H+]
+    ex_oh   = (KW_run / c_h_run - c_h_run) * 1000  # mol/m3
 
     # cross sectional area of the reactor
     A = (np.pi*D**2)/4   # m2
@@ -190,12 +194,12 @@ def modelrun(Q_g = 10,
 
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
-                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         pH = 12.5, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
                          enh_method='DC',wet_eff=1, recirc = False, Kga='onda'
                          )
 
 results_2,cgin_2 = modelrun(Q_g = 10.84, Q_l = 220.645,
-                         pH = 12.404, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         pH = 12.5, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
                          enh_method='DC',wet_eff=0.65, recirc = False, Kga='onda'
                          )
 
