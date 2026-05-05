@@ -234,56 +234,53 @@ pH_plot     = results['pH_profile'][::-1,:]
 x = results['cell_pos']
 t = results['time']
 
-mpl.rcParams['font.family'] = 'serif'
-mpl.rcParams['font.serif'] = ['Garamond']
-mpl.rcParams['axes.linewidth'] = 1
-mpl.rcParams['axes.labelsize'] = 12
-mpl.rcParams['axes.titlesize'] = 14
-mpl.rcParams['xtick.labelsize'] = 11
-mpl.rcParams['ytick.labelsize'] = 11
-mpl.rcParams['legend.fontsize'] = 11 
+mpl.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Garamond'],
+    'font.size': 12,
 
-# position
+    'mathtext.fontset': 'stix',
+
+    'axes.linewidth': 1,
+    'axes.labelsize': 14,
+    'axes.titlesize': 14,
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+
+    'legend.fontsize': 11,
+    'legend.frameon': False,
+
+    'lines.linewidth': 1.2,
+
+    # THIS is the key difference
+    'figure.facecolor': 'white',
+    'axes.facecolor': 'white',
+})
+
+
 plt.figure(figsize=(12, 5))
+plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, We = 0.65 \n pH = 12.88 (dynamic no adjusting)')
 plt.subplot(1,2,1)
-plt.title('gas conc. vs position')
-plt.plot(x, gas[:,-1], 'b-', linewidth = 1.8) 
-plt.ylabel('Gas conc [g/m3]')
-plt.xlabel('Position [m]')
-plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-plt.grid()
-
-plt.subplot(1,2,2)
-plt.title('pH vs position')
-plt.plot(x, pH_plot[:,-1], 'r-', linewidth = 1.8)
-plt.ticklabel_format(style='plain', axis='y', useOffset=False)
-plt.ylabel('pH value')
-plt.xlabel('Position [m]')
-plt.grid()
-
-plt.tight_layout()
-plt.show()
-
-# time
-plt.figure(figsize=(12, 5))
-plt.suptitle('Ql = 220.6 mL/min , Qg = 10.8 L/min, We = 0.65 \n pH = 12.88(dynamic no adjusting)')
-plt.subplot(1,2,1)
-plt.title('Gas concentraion at the outlet vs time')
+plt.title(r'Gas CO$_2$ concentration at the outlet')
 plt.plot(t, gas[-1,:], 'r-', label = "Model")
 plt.plot(outlet['t_sec'], outlet_conc_gm3, 'bo', label = "Experimental", markersize = 2 )
-plt.ylabel('CO2 conc. [g/m3]')
+plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
 plt.xlabel('Time [s]')
-plt.legend()
-plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+plt.grid(False)
 
 plt.subplot(1,2,2)
-plt.title('pH at the outlet vs time')
+plt.title('pH at the outlet')
 plt.plot(t, pH[0,:], 'r-', label = "Model")
 plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 2)
 plt.ylabel('pH')
-plt.xlabel('time[s]')
-plt.legend()
-plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+plt.xlabel('Time [s]')
+plt.legend(loc = 'upper right', frameon = False)
+plt.grid(False)
 
-plt.tight_layout()
+plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 plt.show()

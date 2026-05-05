@@ -155,7 +155,7 @@ def modelrun(Q_g = 10,
     por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 30
+    nc    = 20
 
     cg0 = 28
     cl_co20   = 0.0
@@ -220,13 +220,17 @@ def modelrun(Q_g = 10,
 
     return results,cgin
 
-pH_span = np.array([12.0, 12.2, 12.4, 12.5, 12.6, 12.8, 12.9, 13.01, 13.2, 13.4, 13.6, 13.8, 14])
+pH_span = np.arange(12.0,14.0+0.2, 0.1)
+pH_span = np.append(pH_span, 13.01)
+pH_span = np.sort(pH_span)
+
+len(pH_span)
 removal_list =[]
 for pH in pH_span:
     frac_co2 = 0.023671337124733516
     results,cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = pH, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO' if pH>12.6 else 'DC', wet_eff = 1, Kga = 'onda',recirc=True
+                         enh_method='DC', wet_eff = 1, Kga = 'onda',recirc=True
                          )
     gas = results ['gas_conc']
     gas_out = gas[-1,:]
@@ -235,23 +239,72 @@ for pH in pH_span:
     removal = 100 * (gas_in - gas_out) / gas_in
     removal_list.append(removal[-1])
 
-pH_span_plot = pH_span
-mpl.rcParams['font.family'] = 'serif'
-mpl.rcParams['font.serif'] = ['Garamond']
-mpl.rcParams['axes.linewidth'] = 1
-mpl.rcParams['axes.labelsize'] = 12
-mpl.rcParams['axes.titlesize'] = 14
-mpl.rcParams['xtick.labelsize'] = 11
-mpl.rcParams['ytick.labelsize'] = 11
-mpl.rcParams['legend.fontsize'] = 11
 
-plt.figure(figsize=(7,5))
-plt.title('pH effect on Removal Efficiency')
-plt.plot(pH_span_plot, removal_list, c = 'black', marker = 'o', linestyle = 'none', label = 'Model', fillstyle = 'none')
+Ql_span = np.arange(150,700+20,20)
+removal_list_Ql =[]
+
+for Ql in Ql_span:
+    frac_co2 = 0.025
+    results,cgin = modelrun(Q_g = 10.84, Q_l = Ql,
+                         pH = 13, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         enh_method='DC', wet_eff = 1, Kga = 'onda',recirc=True
+                         )
+    gas = results ['gas_conc']
+    gas_out = gas[-1,:]
+    gas_in = float(cgin)
+
+    removal = 100 * (gas_in - gas_out) / gas_in
+    removal_list_Ql.append(removal[-1])
+
+mpl.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Garamond'],
+    'font.size': 12,
+
+    'mathtext.fontset': 'stix',
+
+    'axes.linewidth': 1,
+    'axes.labelsize': 14,
+    'axes.titlesize': 14,
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+
+    'legend.fontsize': 11,
+    'legend.frameon': False,
+
+    'lines.linewidth': 1.2,
+
+    # THIS is the key difference
+    'figure.facecolor': 'white',
+    'axes.facecolor': 'white',
+})
+
+plt.figure(figsize=(12, 5))
+plt.suptitle(r'pH and liquid flow rate effect on removal efficiency')
+plt.subplot(1,2,1)
+plt.title('(a) pH effect')
+plt.plot(pH_span, removal_list, c = 'black', marker = 'none', linestyle = '-', label = 'Model', fillstyle = 'none')
 plt.plot(13.01, average_RE_13, c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none')
 plt.plot(12.5, average_RE_12,c = 'blue', marker = '^', linestyle = 'none', fillstyle = 'none')
-plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
-plt.legend()
-plt.ylabel('Removal efficiency [%]')
+plt.grid(False)
+plt.ylabel('Steady-State Removal efficiency [%]')
 plt.xlabel('pH value')
+
+
+plt.subplot(1,2,2)
+plt.title(r'(b) Q$_l$ effect')
+plt.plot(Ql_span, removal_list_Ql, c = 'black', marker = 'none', linestyle = '-', label = 'Model', fillstyle = 'none')
+plt.plot([],[], c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none') # invisable only for legend
+plt.grid(False)
+# plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.75))
+# plt.ylabel('Steady-State Removal efficiency [%]')
+plt.xlabel(r'Q$_l$ [mL/min]')
+plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.75))
+
+plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 plt.show()

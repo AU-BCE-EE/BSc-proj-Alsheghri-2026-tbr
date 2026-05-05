@@ -181,117 +181,7 @@ def modelrun(Q_g = 10,
     )
 
     return results, cgin
-
-
-def result_processing(res, cgin, outlet_conc_lab, removal_efficiency_experimental, label):
-    """
-    A function for result processing
-    """
-
-    # ===== extract the results ====== #
-    gas     = res[  'gas_conc'   ]
-    liq     = res['co2_liq_conc' ]
-    TOTC    = res['TOTC_liq_conc']
-    eq      = res[   'eq_conc'   ]    
-    pH      = res[  'pH_profile' ]
-    TOTC_eq = res[   'TOTC_eq'   ]
-    x       = res[  'cell_pos'   ] 
-    t       = res[    'time'     ]
-
-
-    counter = res['inputs']['counter']
-    recirc  = res['inputs']['recirc']
-  
-    m_gin  = res['m_gin']   # gas mol/s coming in
-    m_gout = res['m_gout']  # gas mol/s coming out 
-    m_lout = res['m_lout']  # liq mol/s coming out
-    m_tout = res['m_tout']  # tot mol/s coning out (m_gout + m_lout)
-
-    E_profile = res['E_profile']
-    
-    # outlet hanling 
-    gas_outlet = gas[-1,:]
-    if counter:
-        liq_outlet = liq[0,:]
-        pH_outlet  = pH[0,:]
-        E_outlet   = E_profile[0,:]
-    else:
-        liq_outlet = liq[-1,:]
-        pH_outlet  = pH[-1,:]
-        E_outlet   = E_profile[-1,:]
-
-    # ========= results processing =============
-    gas_inlet       = float(cgin)
-    gas_out_initial = gas_outlet[0]
-    gas_out_final   = gas_outlet[-1]
-
-    removal_eff_final = 100 * (gas_inlet - gas_out_final) / gas_inlet
-    removal_eff_vs_t  = 100 * (gas_inlet - gas_outlet) / gas_inlet
-
-    pH_initial = pH_outlet[0]
-    pH_final   = pH_outlet[-1]
-
-    mass_balance = m_tout - m_gin
-
-
-    # gas concnetration in ppm 
-    temp   = 22.0    # Celcius
-    pres   = 1.0     # bar
-    R      = 8.314e-5        # m3 * bar / K-mol
-    M_co2  = 44.009          # g/mol
-
-    gas_out_final_ppm = (gas_out_final/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    gas_inlet_ppm     = (gas_inlet/M_co2 * ( (temp+273.15)*R / pres)) * 10**6
-    # ===== print results ========
-
-    print(f'\n===== {label} ======\n')
-
-    print(f"\nGas inlet CO2               : {gas_inlet:.2f} g/m3")
-    print(f"Gas inlet ppm                 : {gas_inlet_ppm:.2f}")
-    print(f"Gas outlet initial            : {gas_out_initial:.2f} g/m3")
-    print(f"Gas outlet final              : {gas_out_final:.2f} g/m3")
-    print(f"Gas outlet final in ppm       : {gas_out_final_ppm:.2f}")
-    print(f"Final CO2 removal efficiency  : {removal_eff_final:.2f} %")
-
-    print("\n--- pH ---")
-    print(f"Initial pH      : {pH_initial:.3f}")
-    print(f"Final pH        : {pH_final:.3f}")
-    print("\n======================================\n")
-
-    print("\n====== Mass balance =======")
-    print(f'Gas in          :{m_gin}  mol/s')
-    print(f'Gas out         :{m_gout} mol/s')
-    print(f'liquid out      :{m_lout} mol/s')
-    print(f'Mass balance    :{mass_balance}')
-
-    print("\n====================================\n")
-
-
-    # ================ flip for counter-current ================
-    if counter:
-        liq_plot    = liq[::-1,:]
-        pH_plot     = pH[::-1,:]
-        eq_plot     = eq[::-1,:]
-        TOTC_plot   = TOTC[::-1,:]
-        TOTCeq_plot = TOTC_eq[::-1,:]
-        E_plot      = E_profile[::-1,:] 
-    else: 
-        liq_plot    = liq
-        pH_plot     = pH
-        eq_plot     = eq
-        TOTC_plot   = TOTC
-        TOTCeq_plot = TOTC_eq
-        E_plot      = E_profile 
-
-    # =================== plot style =====================
-    mpl.rcParams['font.family'] = 'serif'
-    mpl.rcParams['font.serif'] = ['Garamond']
-    mpl.rcParams['axes.linewidth'] = 1
-    mpl.rcParams['axes.labelsize'] = 12
-    mpl.rcParams['axes.titlesize'] = 14
-    mpl.rcParams['xtick.labelsize'] = 11
-    mpl.rcParams['ytick.labelsize'] = 11
-    mpl.rcParams['legend.fontsize'] = 11    
+   
 
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
@@ -304,25 +194,45 @@ pH = results['pH_profile'] # outlet is at 0 and inlet is at -1
 x = results['cell_pos']
 t = results['time']
 pH_plot = pH[::-1,:] # since it is counter current so we flip it, this way it makes more sense
-print(t)
-mpl.rcParams['font.family'] = 'serif'
-mpl.rcParams['font.serif'] = ['Garamond']
-mpl.rcParams['axes.linewidth'] = 1
-mpl.rcParams['axes.labelsize'] = 12
-mpl.rcParams['axes.titlesize'] = 14
-mpl.rcParams['xtick.labelsize'] = 11
-mpl.rcParams['ytick.labelsize'] = 11
-mpl.rcParams['legend.fontsize'] = 11
+# print(t)
+
+mpl.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Garamond'],
+    'font.size': 12,
+
+    'mathtext.fontset': 'stix',
+
+    'axes.linewidth': 1,
+    'axes.labelsize': 14,
+    'axes.titlesize': 14,
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'xtick.direction': 'in',
+    'ytick.direction': 'in',
+
+    'legend.fontsize': 11,
+    'legend.frameon': False,
+
+    'lines.linewidth': 1.2,
+
+    # THIS is the key difference
+    'figure.facecolor': 'white',
+    'axes.facecolor': 'white',
+})
 
 indices = [0,1,2,-1]
 for i in indices:
     plt.plot(x,pH_plot[:,i], label = f'{t[i]} s')
 plt.title('pH vs position\n Ql = 505.5 mL/min, Qg = 10.8 L/min')
-plt.grid(True, linestyle = '--', linewidth = 0.5, alpha = 0.6)
+plt.grid(False)
 plt.ylabel('pH value')
 plt.xlabel('Position [m]')
 
-plt.legend()
+plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.95))
 
 plt.show()
 
