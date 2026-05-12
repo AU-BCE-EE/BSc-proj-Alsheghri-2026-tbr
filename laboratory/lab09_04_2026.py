@@ -100,7 +100,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
-             wet_eff = 1.0,
+             cf = 1.0,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -154,7 +154,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    wet_eff = wet_eff
+    cf = cf
     # Kga = 0.02286
     Kga = Kga 
     v_res = vres/1000/A
@@ -174,7 +174,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff = wet_eff,
+        cf = cf,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -188,7 +188,7 @@ def modelrun(Q_g = 10,
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 13.01, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', wet_eff = 1, Kga = 'onda',recirc=True
+                         enh_method='PFO', cf = 1, Kga = 'onda',recirc=True
                          )
 
 
@@ -209,7 +209,7 @@ def modelrun_old(Q_g = 10,
                  D   = 0.19,
                  pH  = 13.7,
                  vres = 20,
-                 wet_eff = 1,
+                 cf = 1,
                  times = outlet_t_sec,
                  frac_co2 = 0.05,
                  Kga = 'onda',
@@ -219,7 +219,7 @@ def modelrun_old(Q_g = 10,
     por_g = 0.86
     por_l = 0.05
     ssa   = 260       # m2/m3
-    ssa = ssa*wet_eff
+    ssa = ssa
     nc    = 60
 
     cg0  = 9.9
@@ -233,6 +233,7 @@ def modelrun_old(Q_g = 10,
     k_molar = 4.315 * 10**13 * np.exp(-6666/TK) 
     k_mass = k_molar * (1/M_co2) * (1/1000) 
     k2 = 'default'
+    cf = cf
     
     henry = [3.3e-2, 2400]
 
@@ -251,12 +252,11 @@ def modelrun_old(Q_g = 10,
     v_l = (Q_l * 1/10**6 * 1/60) / A  # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
     v_res = vres / 1000 / A   # Convert reservoir volume to m3 per m2 cross section
-    
     # Inlet gas concentration
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2  # g/m3
     
     results = old_mod.tfmod(
-        L, por_g, por_l, v_g, v_l, nc,
+        L, por_g, por_l,cf, v_g, v_l, nc,
         cg0, cl0,
         cgin, clin,
         k_mass, Kga, henry, pKa, pH,
@@ -279,7 +279,7 @@ def modelrun_old(Q_g = 10,
     
 results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 505.4,
                          pH = 13.01, times = outlet_t_sec,frac_co2 = frac_co2,
-                        Kga = 'onda',wet_eff = 1, recirc=True, counter = True
+                        Kga = 'onda',cf = 1, recirc=True, counter = True
                          )
 
 gas_old = results_old['gas_conc']

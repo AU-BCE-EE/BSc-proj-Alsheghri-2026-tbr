@@ -96,7 +96,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
-             wet_eff = 1.0,
+             cf = 1.0,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -149,7 +149,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    wet_eff = wet_eff
+    cf = cf
     # Kga = 0.02286
     Kga = Kga 
     v_res = vres/1000/A
@@ -169,7 +169,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff = wet_eff,
+        cf = cf,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -195,12 +195,12 @@ def modelrun(Q_g = 10,
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 220.645,
                          pH = 12.5, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='DC',wet_eff=1, recirc = False, Kga='onda'
+                         enh_method='DC',cf=1, recirc = False, Kga='onda'
                          )
 
 results_2,cgin_2 = modelrun(Q_g = 10.84, Q_l = 220.645,
                          pH = 12.5, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='DC',wet_eff=0.65, recirc = False, Kga='onda'
+                         enh_method='DC', cf=0.65, recirc = False, Kga='onda'
                          )
 
 
@@ -231,7 +231,7 @@ def modelrun_old(Q_g = 10,
                  D   = 0.19,
                  pH  = 13.7,
                  vres = 20,
-                 wet_eff = 1,
+                 cf = 1,
                  times = outlet_t_sec,
                  frac_co2 = 0.05,
                  Kga = 'onda',
@@ -241,7 +241,7 @@ def modelrun_old(Q_g = 10,
     por_g = 0.86
     por_l = 0.05
     ssa   = 260       # m2/m3
-    ssa = ssa*wet_eff
+    ssa = ssa
     nc    = 60
 
     cg0  = 35
@@ -278,7 +278,7 @@ def modelrun_old(Q_g = 10,
     cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2  # g/m3
     
     results = old_mod.tfmod(
-        L, por_g, por_l, v_g, v_l, nc,
+        L, por_g, por_l,cf, v_g, v_l, nc,
         cg0, cl0,
         cgin, clin,
         k_mass, Kga, henry, pKa, pH,
@@ -303,7 +303,7 @@ def modelrun_old(Q_g = 10,
 
 results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 220.645,
                          pH = 12.5, times = outlet_t_sec,frac_co2 = frac_co2,
-                        Kga = 'onda',wet_eff = 0.65, recirc=False, counter = True
+                        Kga = 'onda',cf = 0.65, recirc=False, counter = True
                          )
 
 gas_old = results_old['gas_conc']
@@ -351,8 +351,8 @@ plt.suptitle('pH = 12.5, Ql = 220.6 mL/min, Qg = 10.8 L/min', fontsize = 14)
 plt.subplot(1,3,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
 plt.plot(t_1, gas_outlet_1, 'r-', label = "Model")
-plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, We = 0.65")
-plt.plot(t_old, gas_outlet_old, color = 'grey', linestyle = '--', label = "Simple Model, We = 0.65")
+plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, cf = 0.65")
+plt.plot(t_old, gas_outlet_old, color = 'grey', linestyle = '--', label = "Simple Model, cf = 0.65")
 plt.plot(t_1, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
 # plt.ylim(15,25)
@@ -363,7 +363,7 @@ plt.grid(False)
 plt.subplot(1,3,2)
 plt.title('(b) pH at the outlet')
 plt.plot(t_1, pH_outlet_1, 'r-', label = "Model")
-plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, We = 0.65")
+plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, cf = 0.65")
 plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
 plt.ylabel('pH')
 plt.xlabel('Time [s]')
@@ -372,8 +372,8 @@ plt.grid(False)
 plt.subplot(1,3,3)
 plt.title(r'(c) CO$_2$ removal efficiency')
 plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'Model')
-plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'Model, We = 0.65')
-plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "Simple Model, We = 0.65" )
+plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'Model, cf = 0.65')
+plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "Simple Model, cf = 0.65" )
 plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
 plt.xlabel('Time [s]')

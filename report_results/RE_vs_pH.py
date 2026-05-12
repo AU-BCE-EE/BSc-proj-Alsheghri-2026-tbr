@@ -1,7 +1,6 @@
 '''
 What i want here i to plot Removal efficiency vs pH both experimental and model values
 For the experiments i only have 2 values, one at pH 13 and the other at pH 12.5 
-I will use the results with Ql = 505 mL/min so we do not have the wetting efficiency problem
 '''
 
 # =========================== Experimental data from 09/04/2026 =======================
@@ -138,7 +137,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
-             wet_eff = 1.0,
+             cf = 1.0,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -190,7 +189,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    wet_eff = wet_eff
+    cf = cf
     # Kga = 0.02286
     Kga = Kga 
     v_res = vres/1000/A
@@ -210,7 +209,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff = wet_eff,
+        cf = cf,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -230,7 +229,7 @@ for pH in pH_span:
     frac_co2 = 0.023671337124733516
     results,cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = pH, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='DC', wet_eff = 1, Kga = 'onda',recirc=True
+                         enh_method='DC', cf = 1, Kga = 'onda',recirc=True
                          )
     gas = results ['gas_conc']
     gas_out = gas[-1,:]
@@ -247,7 +246,7 @@ for Ql in Ql_span:
     frac_co2 = 0.025
     results,cgin = modelrun(Q_g = 10.84, Q_l = Ql,
                          pH = 13, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='DC', wet_eff = 1, Kga = 'onda',recirc=True
+                         enh_method='DC', cf = 1, Kga = 'onda',recirc=True
                          )
     gas = results ['gas_conc']
     gas_out = gas[-1,:]

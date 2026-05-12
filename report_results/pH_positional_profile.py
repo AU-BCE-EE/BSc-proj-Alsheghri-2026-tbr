@@ -99,7 +99,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = outlet_t_sec,
              frac_co2 = 0.05,
-             wet_eff = 1.0,
+             cf = 1.0,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -152,7 +152,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    wet_eff = wet_eff
+    cf = cf
     # Kga = 0.02286
     Kga = Kga 
     v_res = vres/1000/A
@@ -172,7 +172,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff = wet_eff,
+        cf = cf,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -186,7 +186,7 @@ def modelrun(Q_g = 10,
 frac_co2 = inlet_conc_actual/10**6
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
                          pH = 13.01, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', wet_eff = 1, Kga = 'onda',recirc=True
+                         enh_method='PFO', cf = 1, Kga = 'onda',recirc=True
                          )
 
 

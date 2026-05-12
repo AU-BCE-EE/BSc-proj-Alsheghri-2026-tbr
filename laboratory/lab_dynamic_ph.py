@@ -133,7 +133,7 @@ def modelrun(Q_g = 10,
              vres = 20,
              times = t_model,
              cgin = cgin_df,
-             wet_eff = 1.0,
+             cf = 1.0,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -179,7 +179,7 @@ def modelrun(Q_g = 10,
     v_g = (Q_g * 1/1000 * 1/60) / A  # L/min * 1m3/1000L * 1min/60s = m3/s
     v_l = (Q_l * 1/10**6 * 1/60) / A # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
 
-    wet_eff = wet_eff
+    cf = cf
     # Kga = 0.02286
     Kga = Kga 
     v_res = vres/1000/A
@@ -199,7 +199,7 @@ def modelrun(Q_g = 10,
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        wet_eff = wet_eff,
+        cf = cf,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -220,7 +220,7 @@ results, cgin = modelrun(Q_g = 10.84,
              vres = 5,
              times = t_model,
              cgin = cgin_df,  
-             wet_eff = 0.65,
+             cf = 0.65,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -264,7 +264,7 @@ mpl.rcParams.update({
 
 
 plt.figure(figsize=(12, 5))
-plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, We = 0.65 \n pH = 12.88 (dynamic no adjusting)')
+plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, cf = 0.65 \n pH = 12.88 (dynamic no adjusting)')
 plt.subplot(1,2,1)
 plt.title(r'Gas CO$_2$ concentration at the outlet')
 plt.plot(t, gas[-1,:], 'r-', label = "Model")

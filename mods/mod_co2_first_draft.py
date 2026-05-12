@@ -9,7 +9,7 @@ from scipy.integrate import solve_ivp
 # Rates function
 # Arg order: time, state variable, then arguments
 # For CO2 absoption in aqueous solution of NaOH at high pH (>10)
-def rates(t, mc, v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot, k, pH, Kga, v_res, k2, temp, henry, pres, pKa, ssa, dens_l, por_l, por_g, counter = True, recirc = False):
+def rates(t, mc, v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot,cf, k, pH, Kga, v_res, k2, temp, henry, pres, pKa, ssa, dens_l, por_l, por_g, counter = True, recirc = False):
 
   # If time-variable concentrations coming in are given, get interpolated values (Here we handle the values that may vary with time)
   # (then we interpolate to get current values at time t)
@@ -103,8 +103,8 @@ def rates(t, mc, v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot, k, pH, Kga, v_
       Ha = (Dliq*k_eff)**0.5/kl   # Hatta number, assumes fast reaction (Kasper and Feilberg, 2019)
       E = Ha/np.tanh(Ha)          # Enhancment factor, assumes fast reaction (Kasper and Feilberg, 2019)
       # breakpoint()
-      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) + Daw / (k_eff * por_l) # reference p181 in Seader et al book (resistance in serie two film)
-      Kga = 1 / Rtot  # overall mass transfer coefficient
+      Rtot = 1 / (kg * ae) + Daw / (kl * ae * E) # reference p181 in Seader et al book (resistance in serie two film)
+      Kga = 1 / Rtot * cf  # overall mass transfer coefficient
 
 
 
@@ -192,7 +192,7 @@ def rates(t, mc, v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot, k, pH, Kga, v_
   return dm
 
 
-def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl0, cgin, clin, k, Kga, henry, pKa, pH, temp, dens_l, times, kg='onda', kl='onda', ae='onda', v_res = 0, k2 = 'default', ccr = 0, pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False):
+def tfmod(L, por_g, por_l,cf, v_g, v_l, nc, cg0, cl0, cgin, clin, k, Kga, henry, pKa, pH, temp, dens_l, times, kg='onda', kl='onda', ae='onda', v_res = 0, k2 = 'default', ccr = 0, pres = 1., ssa = 1100, typ = 'TBD', counter = True, recirc = False):
 
    ## Note that units are defined per 1 m2 filter cross-sectional (total) area 
    ## Below, where 2 sets of units are given this applies to the first case
@@ -284,7 +284,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl0, cgin, clin, k, Kga, henry, pK
    # Solve/integrate
    out = solve_ivp(rates, [0, max(times)], y0 = y0, 
                    t_eval = times, 
-                   args = (v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot, k, pH, Kga, v_res, k2, temp, henry, pres, pKa, ssa, dens_l, por_l, por_g, counter, recirc),
+                   args = (v_g, v_l, cgin, clin, vol_gas, vol_liq, vol_tot,cf, k, pH, Kga, v_res, k2, temp, henry, pres, pKa, ssa, dens_l, por_l, por_g, counter, recirc),
                    method = 'Radau')
    
    # Extract mass of compound [position, time]
