@@ -1,79 +1,18 @@
-"""
-Model validation with experimental data
-The pH in the reservoir was 
-"""
-
-
-import numpy as np
-import pandas as pd
-
-# import the data
-data = pd.read_csv(
-    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\09_04_2026_co2_measurements.csv",
-    sep=';'
-)
-
-
-data['Timestamp'] = pd.to_datetime(data['Timestamp'])
-
-# start and end for the inlet measurment
-start = "2026-04-09 10:16:41"
-end   = "2026-04-09 10:21:41"
-
-# extract all the values in the interval
-inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
-
-# mean inlet conc.
-inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
-inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
-
-Q_gas_bund = 0.387  # L/min
-Q_air_mix = 3.0705     # L/min
-
-# Before the dilution
-inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
-
-
-
-# oulet concentrations
-start_out = "2026-04-09 10:27:41"
-end_out = "2026-04-09 12:08:41"
-outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
-
-Q_gas_top = 0.398  # L/min
-Q_air_mix = 3.0705   # L/min
-
-# actual outlet conc.
-outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
-outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576 
-temp   = 22.0           # Celcius
-pres   = 1.0            # bar
-M_co2 = 44.009          # g/mol
-R     = 8.314e-5        # m3 * bar / K-mol
-
-outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
-
-
-outlet_times = outlet["Timestamp"]
-t0 = outlet_times.iloc[0]
-outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
-
-
-
-
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
 import importlib
 import matplotlib as mpl
 importlib.reload(md)
+import numpy as np
 
 def modelrun(Q_g = 10,
              Q_l = 350,
              D   = 0.19,
              pH  = 13.7,
              vres = 20,
-             times = outlet_t_sec,
+             times = np.arange(0,6060+60,60),
              frac_co2 = 0.05,
+             L = 0.30,
              cf = 1.0,
              Kga = 'onda',
              counter=True,
@@ -87,11 +26,10 @@ def modelrun(Q_g = 10,
     Q_l             mL/min
     """
     #========= fixed parameters ==========# 
-    L     = 0.3       # m
     por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 60
+    nc    = 20
 
     cg0 = 9.9
     cl_co20   = 0.0
@@ -156,21 +94,40 @@ def modelrun(Q_g = 10,
     )
 
     return results, cgin
-   
 
-frac_co2 = inlet_conc_actual/10**6
-results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
-                         pH = 13.01, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
-                         enh_method='PFO', cf = 1, Kga = 'onda',recirc=True
-                         )
+Length = [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
+Ql = [220.6, 505.5]
+
+pH_diff_pH13_Q505 = []
+pH_diff_pH13_Q220 = []
+for L in Length:
+    for Q in Ql:
+        results, cgin = modelrun(Q_g = 10.8, Q_l = Q , pH = 13,
+                                frac_co2=0.025, L = L)
+        pH_inlet = results['pH_profile'][-1,-1]
+        pH_outlet = results['pH_profile'][0,-1]
+        pH_diff = pH_inlet - pH_outlet
+        if Q == 505.5:
+            pH_diff_pH13_Q505.append(pH_diff)
+        else: 
+            pH_diff_pH13_Q220.append(pH_diff)
 
 
-pH = results['pH_profile'] # outlet is at 0 and inlet is at -1
-x = results['cell_pos']
-t = results['time']
-pH_plot = pH[::-1,:] # since it is counter current so we flip it, this way it makes more sense
-# print(t)
+pH_diff_pH12_5_Q505 = []
+pH_diff_pH12_5_Q220 = []
+for L in Length:
+    for Q in Ql:
+        results, cgin = modelrun(Q_g = 10.8, Q_l = Q , pH = 12.5,
+                                frac_co2=0.025, L = L)
+        pH_inlet = results['pH_profile'][-1,-1]
+        pH_outlet = results['pH_profile'][0,-1]
+        pH_diff = pH_inlet - pH_outlet
+        if Q == 505.5:
+            pH_diff_pH12_5_Q505.append(pH_diff)
+        else: 
+            pH_diff_pH12_5_Q220.append(pH_diff)
 
+from matplotlib.lines import Line2D
 mpl.rcParams.update({
     'font.family': 'serif',
     'font.serif': ['Garamond'],
@@ -199,17 +156,37 @@ mpl.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-indices = [0,1,2,-1]
-plt.figure(figsize=(7,4))
-for i in indices:
-    plt.plot(x,pH_plot[:,i], label = f'{t[i]} s')
-plt.title('pH vs position\n Ql = 505.5 mL/min, Qg = 10.8 L/min')
-plt.grid(False)
-plt.ylabel('pH value')
-plt.xlabel('Position [m]')
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5), sharey=True) 
+fig.suptitle('Steady-state pH difference between reactor inlet and outlet')
 
-plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.95))
 
+ax1.set_title('Inlet pH = 13')
+ax1.scatter(Length, pH_diff_pH13_Q505, 
+            marker='o', s=30, 
+            facecolors='none', edgecolors='black', label = r'Q$_l$ = 505 L/min')
+ax1.scatter(Length, pH_diff_pH13_Q220, 
+            marker='^', s=30, 
+            facecolors='none',edgecolors='black', label = r'Q$_l$ = 220 L/min')
+ax1.legend(loc = 'upper left', fontsize='large', frameon = False, bbox_to_anchor=(0, 1))
+ax1.set_xlabel('Packed bed length [m]')
+ax1.set_ylabel(r'pH$_{in}$ - pH$_{out}$ ')
+ax1.grid(False)
+
+
+ax2.set_title('Inlet pH = 12.5')
+ax2.scatter(Length, pH_diff_pH12_5_Q505, 
+            marker='o', s=30, 
+            facecolors='none', edgecolors='black', label = r'Q$_l$ = 505 L/min ')
+ax2.scatter(Length, pH_diff_pH12_5_Q220, 
+            marker='^', s=30, 
+            facecolors='none',edgecolors='black',  label = r'Q$_l$ = 220 L/min')
+
+ax2.set_xlabel('Packed bed length [m]')
+ax2.grid(False)
+ymin = 0.25
+ymax = 2.25
+yticks = np.arange(ymin, ymax+0.25, 0.25)
+ax1.set_yticks(yticks)
+# plt.legend(loc = 'upper left', fontsize='small', frameon = False, bbox_to_anchor=(0, 1))
+plt.tight_layout()
 plt.show()
-
-
