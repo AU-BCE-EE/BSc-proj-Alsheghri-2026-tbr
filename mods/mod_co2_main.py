@@ -150,7 +150,7 @@ def rates(t, n,
       if enh_method is not None:
           E = em.enh_fac(
               c_oh   = c_oh,
-              c_co2  = c_co2i,
+              c_co2i  = c_co2i,
               k      = k3,
               K      = K4,
               kl     = kl,

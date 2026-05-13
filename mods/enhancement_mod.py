@@ -1,6 +1,6 @@
 import numpy as np
 
-def enh_fac(c_oh, c_co2, k, K, kl, method ):
+def enh_fac(c_oh, c_co2i, k, K, kl, method ):
     """
     
     Calculating the CO2 mass-transfer enhancement
@@ -16,7 +16,7 @@ def enh_fac(c_oh, c_co2, k, K, kl, method ):
     c_oh   : float or ndarray
         OH^- concentration in the bulk liquid           [mol/m3]
 
-    c_co2  : float or ndarray
+    c_co2i  : float or ndarray
         CO2 concentration at the interface              [mol/m3]
 
     k      : float
@@ -49,7 +49,7 @@ def enh_fac(c_oh, c_co2, k, K, kl, method ):
         E  = Ha / np.tanh(Ha)               # Enhancement factor for pfo reaction
     
     elif method == 'RSO':
-        denom = 1.0 + K * (D3 / D2) * c_co2
+        denom = 1.0 + K * (D3 / D2) * c_co2i
         if np.any(denom <= 0.0):
             raise ValueError('Denominator in RSO expression is non-positive or 0')
         E  = 1.0 + (D3 / D1) * (K * c_oh / denom)
@@ -57,7 +57,7 @@ def enh_fac(c_oh, c_co2, k, K, kl, method ):
     elif method == 'DC':
         k_pfo = k * c_oh                    # pseudo first order rate constant  [1/s]
         Ha = np.sqrt(k_pfo * D1) / kl       # Hatta number
-        Ei = 1.0 + (D2 / D1) * (c_oh / c_co2)
+        Ei = 1.0 + (D2 / D1) * (c_oh / c_co2i)
 
         term1 = - Ha**2 / (2 * (Ei-1))
         term2 = Ha**4 / (4 * (Ei-1)**2)
