@@ -233,6 +233,104 @@ pH  = results['pH_profile']
 pH_plot     = results['pH_profile'][::-1,:]
 x = results['cell_pos']
 t = results['time']
+########################### old model ########################################
+import mods.mod_co2_first_draft as old_mod
+def modelrun_old(Q_g = 10,
+                 Q_l = 350,
+                 D   = 0.19,
+                 pH  = 13.7,
+                 vres = 20,
+                 cf = 1,
+                 times = t_model,
+                 cgin=cgin_df,
+                 Kga = 'onda',
+                 counter = True,
+                 recirc = True):
+    L     = 0.3       # m
+    por_g = 0.86
+    por_l = 0.05
+    ssa   = 260       # m2/m3
+    ssa = ssa
+    nc    = 60
+
+    cg0  = 25
+    cl0  = 0.0
+    clin = 0.0
+    ccr  = 0.0
+
+    M_co2 = 44.009
+    temp = 22.0
+    TK = temp + 273.15
+    k_molar = 4.315 * 10**13 * np.exp(-6666/TK) 
+    k_mass = k_molar * (1/M_co2) * (1/1000) 
+    k2 = 'default'
+    
+    henry = [3.3e-2, 2400]
+
+
+    dens_l = 997.0     # kg/m3
+    pres   = 1.0       # bar
+    pKa    = 6.35      # pKa for CO2/HCO3- (needed by old model function signature)
+
+    R = 8.314e-5       # m3 * bar / K-mol
+
+    # ================= Derived values =================
+    # cross sectional area of the reactor
+    A = (np.pi * D**2) / 4    # m2
+    # flow velocity using flow rate and area 
+    v_g = (Q_g * 1/1000 * 1/60) / A   # L/min * 1m3/1000L * 1min/60s = m3/s
+    v_l = (Q_l * 1/10**6 * 1/60) / A  # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
+
+    v_res = vres / 1000 / A   # Convert reservoir volume to m3 per m2 cross section
+    
+    # Inlet gas concentration
+    cgin = cgin
+    
+    results = old_mod.tfmod(
+        L, por_g, por_l,cf, v_g, v_l, nc,
+        cg0, cl0,
+        cgin, clin,
+        k_mass, Kga, henry, pKa, pH,
+        temp, dens_l,
+        times,
+        kg='onda',
+        kl='onda',
+        ae='onda',
+        v_res=v_res,
+        k2=k2,
+        ccr=ccr,
+        pres=pres,
+        ssa=ssa,
+        typ='PR',
+        counter=counter,
+        recirc=recirc
+    )
+
+    return results, cgin
+
+    
+results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 220.645,
+                         pH = 12.88,vres=5, times = t_model,cgin=cgin_df,
+                        Kga = 'onda',cf = 0.65, recirc=True, counter = True
+                         )
+
+gas_old = results_old['gas_conc']
+x_old = results_old['cell_pos']
+t_old = results_old['time']
+
+
+######################## results ###################################
+def RMSE(model, experiment):
+    return np.sqrt(np.mean((model - experiment)**2))
+def MBE(model, experiment):
+    return np.mean((model - experiment))
+
+print(f'RMSE for new model {RMSE(gas[-1,:], outlet_conc_gm3[5:])}')
+print(f'MBE for the new model {MBE(gas[-1,:], outlet_conc_gm3[5:])}')
+print()
+print(f'RMSE for old model {RMSE(gas_old[-1,:], outlet_conc_gm3[5:])}')
+print(f'MBE for the old model {MBE(gas_old[-1,:], outlet_conc_gm3[5:])}')
+
 
 mpl.rcParams.update({
     'font.family': 'serif',
@@ -264,10 +362,11 @@ mpl.rcParams.update({
 
 
 plt.figure(figsize=(12, 5))
-plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, cf = 0.65 \n pH = 12.88 (dynamic no adjusting)')
+plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, cf = 0.65 \n pH = 12.88')
 plt.subplot(1,2,1)
 plt.title(r'Gas CO$_2$ concentration at the outlet')
-plt.plot(t, gas[-1,:], 'r-', label = "Model")
+plt.plot(t, gas[-1,:], 'r-', label = "M1")
+plt.plot(t_old, gas_old[-1,:], color='grey', linestyle='--', label ='M2')
 plt.plot(outlet['t_sec'], outlet_conc_gm3, 'bo', label = "Experimental", markersize = 2 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
 plt.xlabel('Time [s]')
@@ -275,7 +374,8 @@ plt.grid(False)
 
 plt.subplot(1,2,2)
 plt.title('pH at the outlet')
-plt.plot(t, pH[0,:], 'r-', label = "Model")
+plt.plot(t, pH[0,:], 'r-', label = "M1")
+plt.plot([],[], color='grey', linestyle='--', label = 'M2')
 plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 2)
 plt.ylabel('pH')
 plt.xlabel('Time [s]')

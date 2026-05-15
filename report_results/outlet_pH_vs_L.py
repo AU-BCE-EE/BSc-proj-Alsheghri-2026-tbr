@@ -29,7 +29,7 @@ def modelrun(Q_g = 10,
     por_g = 0.86
     por_l = 0.05
     ssa   = 260     # m2/m3
-    nc    = 20
+    nc    = 10
 
     cg0 = 9.9
     cl_co20   = 0.0
@@ -95,7 +95,7 @@ def modelrun(Q_g = 10,
 
     return results, cgin
 
-Length = [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
+Length = np.arange(0.10,1.00+0.05,0.05)
 Ql = [220.6, 505.5]
 
 pH_diff_pH13_Q505 = []
@@ -161,25 +161,21 @@ fig.suptitle('Steady-state pH difference between reactor inlet and outlet')
 
 
 ax1.set_title('Inlet pH = 13')
-ax1.scatter(Length, pH_diff_pH13_Q505, 
-            marker='o', s=30, 
-            facecolors='none', edgecolors='black', label = r'Q$_l$ = 505 L/min')
-ax1.scatter(Length, pH_diff_pH13_Q220, 
-            marker='^', s=30, 
-            facecolors='none',edgecolors='black', label = r'Q$_l$ = 220 L/min')
+ax1.plot(Length, pH_diff_pH13_Q505, color='blue',
+          label =r'Q$_l$ = 505 L/min')
+ax1.plot(Length, pH_diff_pH13_Q220, color='red',
+             label = r'Q$_l$ = 220 L/min')
 ax1.legend(loc = 'upper left', fontsize='large', frameon = False, bbox_to_anchor=(0, 1))
 ax1.set_xlabel('Packed bed length [m]')
-ax1.set_ylabel(r'pH$_{in}$ - pH$_{out}$ ')
+ax1.set_ylabel(r'$pH_{in}$ - $pH_{out}$ ')
 ax1.grid(False)
 
 
 ax2.set_title('Inlet pH = 12.5')
-ax2.scatter(Length, pH_diff_pH12_5_Q505, 
-            marker='o', s=30, 
-            facecolors='none', edgecolors='black', label = r'Q$_l$ = 505 L/min ')
-ax2.scatter(Length, pH_diff_pH12_5_Q220, 
-            marker='^', s=30, 
-            facecolors='none',edgecolors='black',  label = r'Q$_l$ = 220 L/min')
+ax2.plot(Length, pH_diff_pH12_5_Q505, color='blue', 
+            label = r'Q$_l$ = 505 L/min ')
+ax2.plot(Length, pH_diff_pH12_5_Q220, color='red',
+          label = r'Q$_l$ = 220 L/min')
 
 ax2.set_xlabel('Packed bed length [m]')
 ax2.grid(False)

@@ -311,6 +311,22 @@ removal_eff_vs_t_old = 100 * (cgin_old - gas_outlet_old) / cgin_old
 
 
 # ==================================== results ============================
+
+def RMSE(model, experiment):
+    return np.sqrt(np.mean((model - experiment)**2))
+def MBE(model, experiment):
+    return np.mean((model - experiment))
+
+print(f'RMSE for old model is {RMSE(gas_outlet_old, outlet_conc_gm3)}')
+print(f'MBE for old model is {MBE(gas_outlet_old, outlet_conc_gm3)}')
+print()
+print(f'RMSE for E= PFO is {RMSE(gas_outlet_1, outlet_conc_gm3)}')
+print(f'MBE for E=PFO is {MBE(gas_outlet_1, outlet_conc_gm3)}')
+print()
+print(f'RMSE for E= DC is {RMSE(gas_outlet_2, outlet_conc_gm3)}')
+print(f'MBE for E=DC is {MBE(gas_outlet_2, outlet_conc_gm3)}')
+
+
 mpl.rcParams.update({
     'font.family': 'serif',
     'font.serif': ['Garamond'],
@@ -365,9 +381,9 @@ plt.grid(False)
 
 plt.subplot(1,3,3)
 plt.title(r'(c) CO$_2$ removal efficiency')
-plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'Model, E = PFO')
-plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'Model, E = DeCoursey')
-plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "Simple Model" )
+plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'M1, E = PFO')
+plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'M1, E = DeCoursey')
+plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2" )
 plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
 plt.xlabel('Time [s]')

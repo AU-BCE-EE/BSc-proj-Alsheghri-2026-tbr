@@ -321,6 +321,24 @@ mpl.rcParams.update({
     'axes.facecolor': 'white',
 }) 
 
+
+
+
+
+########################### Root mean squared error #######################
+
+def RMSE(model, experiment):
+    return np.sqrt(np.mean((model - experiment)**2))
+def MBE(model, experiment):
+    return np.mean((model - experiment))
+
+print(f'The root mean squared error for the old model is {RMSE(gas_outlet_old, outlet_conc_gm3)}')
+print(f'The root mean squared error for the new model is {RMSE(gas_outlet, outlet_conc_gm3)}')
+print()
+print(f'The MBE for the old model is {MBE(gas_outlet_old, outlet_conc_gm3)}')
+print(f'The MBE for the new model is {MBE(gas_outlet, outlet_conc_gm3)}')
+
+
 plt.figure(figsize=(12, 5))
 plt.suptitle('pH = 13.01, Ql = 505.5 mL/min, Qg = 10.8 L/min', fontsize = 14)
 plt.subplot(1,3,1)
@@ -345,8 +363,8 @@ plt.grid(False)
 
 plt.subplot(1,3,3)
 plt.title('(c) CO$_2$ removal efficiency')
-plt.plot(t, removal_eff_vs_t, 'r-', label = 'Model')
-plt.plot(t,removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "Simple Model")
+plt.plot(t, removal_eff_vs_t, 'r-', label = 'M1')
+plt.plot(t,removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2")
 plt.plot(t,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
 plt.xlabel('Time [s]')

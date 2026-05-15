@@ -203,7 +203,7 @@ indices = [0,1,2,-1]
 plt.figure(figsize=(7,4))
 for i in indices:
     plt.plot(x,pH_plot[:,i], label = f'{t[i]} s')
-plt.title('pH vs position\n Ql = 505.5 mL/min, Qg = 10.8 L/min')
+plt.title('Ql = 505.5 mL/min, Qg = 10.8 L/min')
 plt.grid(False)
 plt.ylabel('pH value')
 plt.xlabel('Position [m]')

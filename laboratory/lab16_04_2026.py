@@ -292,7 +292,7 @@ def modelrun_old(Q_g = 10,
     return results, cgin
 
 
-
+# ============================ old cf =========================
 results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 220.645,
                          pH = 13, times = outlet_t_sec,frac_co2 = frac_co2,
                         Kga = 'onda',cf = 0.65, recirc=False, counter = True
@@ -306,7 +306,42 @@ t_old       = results_old['time']
 gas_outlet_old = gas_old[-1,:]
 
 removal_eff_vs_t_old = 100 * (cgin_old - gas_outlet_old) / cgin_old
+
+########################################## old no cf =====================
+results_old_2, cgin_old_2 = modelrun_old(Q_g = 10.84, Q_l = 220.645,
+                         pH = 13, times = outlet_t_sec,frac_co2 = frac_co2,
+                        Kga = 'onda',cf = 1, recirc=False, counter = True
+                         )
+
+gas_old_2 = results_old_2['gas_conc']
+x_old_2       = results_old_2['cell_pos'] 
+t_old_2       = results_old_2['time']
+
+
+gas_outlet_old_2 = gas_old_2[-1,:]
+
+removal_eff_vs_t_old_2 = 100 * (cgin_old_2 - gas_outlet_old_2) / cgin_old_2
+
 # ============================= results ====================
+
+
+def RMSE(model, experiment):
+    return np.sqrt(np.mean((model - experiment)**2))
+def MBE(model, experiment):
+    return np.mean((model - experiment))
+
+print(f'The root mean squared error for the old model is {RMSE(gas_outlet_old, outlet_conc_gm3)}')
+print(f'The root mean squared error for the old model no cf is {RMSE(gas_outlet_old_2, outlet_conc_gm3)}')
+print()
+print(f'The root mean squared error for the new model is {RMSE(gas_outlet_1, outlet_conc_gm3)}')
+print(f'The root mean squared error for the new model cf 0.65 is {RMSE(gas_outlet_2, outlet_conc_gm3)}')
+
+print()
+print(f'The MBE for the old model is {MBE(gas_outlet_old, outlet_conc_gm3)}')
+print(f'The MBE for the old model no cf is {RMSE(gas_outlet_old_2, outlet_conc_gm3)}')
+print()
+print(f'The MBE for the new model is {MBE(gas_outlet_1, outlet_conc_gm3)}')
+print(f'The MBE for the new model cf 0.65 is {MBE(gas_outlet_2, outlet_conc_gm3)}')
 
 mpl.rcParams.update({
     'font.family': 'serif',
@@ -341,9 +376,10 @@ plt.figure(figsize=(12, 5))
 plt.suptitle('pH = 13.0, Ql = 220.6 mL/min, Qg = 10.8 L/min', fontsize = 14)
 plt.subplot(1,3,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
-plt.plot(t_1, gas_outlet_1, 'r-', label = "Model")
-plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, cf = 0.65")
-plt.plot(t_old, gas_outlet_old, color = 'grey', linestyle = '--', label = "Simple Model, cf = 0.65")
+plt.plot(t_1, gas_outlet_1, 'r-', label = "M1")
+plt.plot(t_2,gas_outlet_2, 'k-', label = "M1, cf = 0.65")
+plt.plot(t_old, gas_outlet_old, color = 'grey', linestyle = '--', label = "M2, cf = 0.65")
+plt.plot(t_old_2, gas_outlet_old_2, color = 'green', linestyle = '--', label = "M2")
 plt.plot(t_1, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
 # plt.ylim(15,25)
@@ -354,8 +390,8 @@ plt.grid(False)
 
 plt.subplot(1,3,2)
 plt.title('(b) pH at the outlet')
-plt.plot(t_1, pH_outlet_1, 'r-', label = "Model")
-plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, cf = 0.65")
+plt.plot(t_1, pH_outlet_1, 'r-', label = "M1")
+plt.plot(t_2, pH_outlet_2, 'k-', label = "M1, cf = 0.65")
 plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
 plt.ylabel('pH')
 plt.xlabel('Time [s]')
@@ -364,9 +400,10 @@ plt.grid(False)
 
 plt.subplot(1,3,3)
 plt.title(r'(c) CO$_2$ removal efficiency')
-plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'Model')
-plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'Model, cf = 0.65')
-plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "Simple Model, cf = 0.65" )
+plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'M1')
+plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'M1, cf = 0.65')
+plt.plot(t_old_2, removal_eff_vs_t_old_2, color = 'green',linestyle = '--', label = "M2" )
+plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2, cf = 0.65" )
 plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
 plt.xlabel('Time [s]')

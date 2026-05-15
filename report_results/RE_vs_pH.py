@@ -283,27 +283,25 @@ mpl.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-plt.figure(figsize=(12, 5))
-plt.suptitle(r'pH and liquid flow rate effect on removal efficiency')
-plt.subplot(1,2,1)
-plt.title('(a) pH effect')
-plt.plot(pH_span, removal_list, c = 'black', marker = 'none', linestyle = '-', label = 'Model', fillstyle = 'none')
-plt.plot(13.01, average_RE_13, c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none')
-plt.plot(12.5, average_RE_12,c = 'blue', marker = '^', linestyle = 'none', fillstyle = 'none')
-plt.grid(False)
-plt.ylabel('Steady-State Removal efficiency [%]')
-plt.xlabel('pH value')
+fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(12,5), sharey=True) 
+fig.suptitle(r'pH and liquid flow rate effect on removal efficiency')
+ax1.set_title('(a) pH effect')
+ax1.plot(pH_span, removal_list, c = 'black', marker = 'none', linestyle = '-', label = 'Model', fillstyle = 'none')
+ax1.plot(13.01, average_RE_13, c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none')
+ax1.plot(12.5, average_RE_12,c = 'blue', marker = '^', linestyle = 'none', fillstyle = 'none')
+ax1.grid(False)
+ax1.set_ylabel('Steady-State Removal efficiency [%]')
+ax1.set_xlabel('pH value')
 
 
-plt.subplot(1,2,2)
-plt.title(r'(b) Q$_l$ effect')
-plt.plot(Ql_span, removal_list_Ql, c = 'black', marker = 'none', linestyle = '-', label = 'Model', fillstyle = 'none')
-plt.plot([],[], c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none') # invisable only for legend
-plt.grid(False)
+ax2.set_title(r'(b) Q$_l$ effect')
+ax2.plot(Ql_span, removal_list_Ql, c = 'black', marker = 'none', linestyle = '-', label = 'M1', fillstyle = 'none')
+ax2.plot([],[], c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none') # invisable only for legend
+ax2.grid(False)
 # plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.75))
 # plt.ylabel('Steady-State Removal efficiency [%]')
-plt.xlabel(r'Q$_l$ [mL/min]')
-plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.75))
+ax2.set_xlabel(r'Q$_l$ [mL/min]')
+plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.95))
 
 plt.tight_layout(rect=[0, 0.05, 1, 0.95])
 plt.show()

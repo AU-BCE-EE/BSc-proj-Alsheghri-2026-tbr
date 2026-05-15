@@ -380,6 +380,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
         Options:
         - 'PFO' : Pseudo first-order reaction
         - 'RSO' : Reversible second-order reaction
+        - 'DC'  : DeCoursey explicit formula 
         Default is 'PFO'
     constant_res_pH: bool
         If True, the reservoir pH would always be constant(initial pH)
