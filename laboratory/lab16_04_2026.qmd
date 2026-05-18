@@ -608,7 +608,7 @@ def res_func(x):
 
 lspar = least_squares(
     res_func, 
-    x0 = [0.02])
+    x0 = [0])
     
 print(f'The estimated cf value is: {lspar.x[0]}')
 # 

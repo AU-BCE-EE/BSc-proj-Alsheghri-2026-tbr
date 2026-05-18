@@ -160,7 +160,7 @@ fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,5), sharey=True)
 fig.suptitle('Steady-state pH difference between reactor inlet and outlet')
 
 
-ax1.set_title('Inlet pH = 13')
+ax1.set_title('(a) Inlet pH = 13')
 ax1.plot(Length, pH_diff_pH13_Q505, color='blue',
           label =r'Q$_l$ = 505 L/min')
 ax1.plot(Length, pH_diff_pH13_Q220, color='red',
@@ -171,7 +171,7 @@ ax1.set_ylabel(r'$pH_{in}$ - $pH_{out}$ ')
 ax1.grid(False)
 
 
-ax2.set_title('Inlet pH = 12.5')
+ax2.set_title('(b) Inlet pH = 12.5')
 ax2.plot(Length, pH_diff_pH12_5_Q505, color='blue', 
             label = r'Q$_l$ = 505 L/min ')
 ax2.plot(Length, pH_diff_pH12_5_Q220, color='red',

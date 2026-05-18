@@ -108,7 +108,7 @@ def rates(t, n,
       g      = 9.81                   # m / sec^2
       Dg     = 1.6E-5                 # gas diffusion coefficient in m2 / sec; compound specific     
       Dliq   = 1.89E-9                # liquid diffusion coefficient                                  
-      sigm_c = 0.029                  # critical surface tension (https://askfilo.com/user-question-answers-biology/table-1-critical-surface-tension-values-for-common-polymeric-38323539333234)
+      sigm_c = 0.029                  # critical surface tension
       sigm_l = 0.072                  # surface tension
       mw_g   = 28.97                  # Air (gas mix) molecular weight (molar mass) (g/mol)
       dp     = 6 * (1 - (por_g+por_l)) / ssa  # characteristic packing length (m) (https://beckassets.blob.core.windows.net/product/readingsample/10075882/9783642262067_excerpt_001.pdf)
