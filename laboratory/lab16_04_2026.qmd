@@ -534,13 +534,13 @@ def res_func(x):
     frac_co2 = inlet_conc_actual/10**6
     constant_res_pH=True
     enh_method='PFO'
-    Kga = 'Onda'
+    Kga = x
     #========= fixed parameters ==========# 
     L     = 0.3       # m
     por_g = 0.91
     por_l = 0.05
     ssa   = 260     # m2/m3
-    cf = x
+    cf = 1
     nc    = 30
 
     cg0 = 23
@@ -610,7 +610,7 @@ lspar = least_squares(
     res_func, 
     x0 = [0])
     
-print(f'The estimated cf value is: {lspar.x[0]}')
+print(f'The estimated value is: {lspar.x[0]}')
 # 
 
 ```

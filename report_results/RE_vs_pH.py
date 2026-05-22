@@ -219,7 +219,7 @@ def modelrun(Q_g = 10,
 
     return results,cgin
 
-pH_span = np.arange(12.0,14.0+0.2, 0.1)
+pH_span = np.arange(11.0,14.0+0.2, 0.1)
 pH_span = np.append(pH_span, 13.01)
 pH_span = np.sort(pH_span)
 
