@@ -338,7 +338,7 @@ print(f'The root mean squared error for the new model cf 0.65 is {RMSE(gas_outle
 
 print()
 print(f'The MBE for the old model is {MBE(gas_outlet_old, outlet_conc_gm3)}')
-print(f'The MBE for the old model no cf is {RMSE(gas_outlet_old_2, outlet_conc_gm3)}')
+print(f'The MBE for the old model no cf is {MBE(gas_outlet_old_2, outlet_conc_gm3)}')
 print()
 print(f'The MBE for the new model is {MBE(gas_outlet_1, outlet_conc_gm3)}')
 print(f'The MBE for the new model cf 0.65 is {MBE(gas_outlet_2, outlet_conc_gm3)}')
