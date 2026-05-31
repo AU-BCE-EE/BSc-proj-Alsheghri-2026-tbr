@@ -1,5 +1,16 @@
 import numpy as np
 from scipy.optimize import root_scalar
+"""
+This file contains the speciaiton model, note that the first function is not used
+but was made as an initial implementation.
+
+The second and last functions are also not used. 
+The last function was made to try vectorized approach but did not work well.
+
+The only function used is spec2_matrix
+"""
+
+
 # here is a function with same form as Sasha's but without the matrix...
 def spec(TOTC,K_hco3,K_co3,KW):
     """
@@ -133,8 +144,7 @@ def spec2(TOTC, K_hco3, K_co3, KW, ex_oh):
 
 
 
-# the same as spec2 but here with matrix apporach. When we are 100% sure it works we could just
-# remove the two above or have a module with matrix approach only.  
+# The same as spec2 but here with matrix apporach inspired by Sasha.
 
 def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     """
@@ -143,7 +153,7 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     to be converted to H2CO3 and HCO3- in kinetically-limited 
     reactions.
 
-    Author: Osman Alsheghri
+    Author: Osman Alsheghri (inspired by Sasha D. Hafner)
 
     Parameters/Input
     -------------
@@ -159,7 +169,7 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     KW    : float
             Water dissociation constant 
 
-    c_oh  : concentration of excess OH- (mol/m3)
+    ex_oh  : concentration of excess OH- (mol/m3)
 
     Returns
     ----------
@@ -173,13 +183,13 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     """
 
     # From the mass action and mass balance expressions we can derive:
-    # HCO3 = K1 * c_h2co3**1 * c_h**-1 
-    # CO3  = K1*K2 * c_h2co3**1 * c_h **-2 
+    # HCO3 = K_hco3 * c_h2co3**1 * c_h**-1 
+    # CO3  = K_co3 * c_h2co3**1 * c_h **-2 
     # OH   = KW * c_h **-1 
 
     # Convert mol/m3 to mol/L
-    TOTC = TOTC/1000
-    ex_oh = ex_oh/1000
+    TOTC  = TOTC / 1000
+    ex_oh = ex_oh / 1000
 
     # define the stoichiometry matrix
     #        | H2CO3 |  H+
@@ -197,22 +207,26 @@ def spec2_matrix(TOTC, K_hco3, K_co3, KW, ex_oh = 0.):
     K = np.array([K_hco3, K_co3, KW])
 
     def residH_log(log10_ch):
-        c_h     = 10.0**log10_ch
+        c_h     = 10.0**log10_ch # the reason that we use log scale is because if we did not
+        # c_h conc. would span from 10^-14 to 10^0. 10^-14 would be 0 in many calculations 
+        # and the solver will fail. In the log space we would work with -14 instead
 
         # denominator for c_h2co3 equation --> denom = 1 + K1/c_h + K1*K2/c_h**2 
-        denom   = 1.0 + np.sum(K * (c_h**(-S[:,1])) * (-S[:,0])) # if we did not have the last part
+        denom   = 1.0 + np.sum(K * (c_h**(-S[:, 1])) * (-S[:, 0])) # if we did not have the last part
         # then we would also say that denom depends on OH, it does not.
         c_h2co3 = TOTC / denom
         conc    = K * (c_h2co3**(-S[:,0])) * (c_h**(-S[:,1])) # conc is now an array with [c_hco3, c_co3, c_oh]
         return c_h - np.sum(conc * S[:,1]) + ex_oh
-    # Bracket is [-14, -1] which spans pH 1 to pH 14 
+    # Bracket is [-14, -1] where -14 corresponds to pH=14 and -1 corresponds to pH=1
     try:
-        log_ch = root_scalar(residH_log,
-                             bracket=[-14, -1],
-                             method='brentq').root
+        log_ch = root_scalar(
+            residH_log,
+            bracket=[-14, -1],
+            method='brentq').root
         c_h = 10.0**log_ch
     except Exception:
-        c_h = 1e-14   # pure water at pH 14
+        c_h = 1e-14   # fall back value if solver fails, this will rarly happen
+        # since the brackets cover the relevant range of pH. 
 
     # calculate the concentration of the equilibrium species
     denom   = 1.0 + np.sum(K * (c_h**(-S[:,1])) * (-S[:,0]))

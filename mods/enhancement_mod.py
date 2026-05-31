@@ -5,8 +5,9 @@ def enh_fac(c_oh, c_co2i, k, K, kl, method ):
     
     Calculating the CO2 mass-transfer enhancement
     factor for a reacting gas-liquid system,
-    using either a pseudo first-order (PFO)
-    or a fast second-order reversible reaction (RSO) 
+    using either a pseudo first-order (PFO),
+    a fast second-order reversible reaction (RSO)
+    or DeCoursey method (DC)
 
     Author: Osman Alsheghri
 
@@ -55,9 +56,9 @@ def enh_fac(c_oh, c_co2i, k, K, kl, method ):
         E  = 1.0 + (D3 / D1) * (K * c_oh / denom)
     
     elif method == 'DC':
-        k_pfo = k * c_oh                    # pseudo first order rate constant  [1/s]
-        Ha = np.sqrt(k_pfo * D1) / kl       # Hatta number
-        Ei = 1.0 + (D2 / D1) * (c_oh / c_co2i)
+        k_pfo = k * c_oh                       # pseudo first order rate constant  [1/s]
+        Ha = np.sqrt(k_pfo * D1) / kl          # Hatta number
+        Ei = 1.0 + (D2 / D1) * (c_oh / c_co2i) # Infinite enhancement factor for film theory
 
         term1 = - Ha**2 / (2 * (Ei-1))
         term2 = Ha**4 / (4 * (Ei-1)**2)
@@ -66,5 +67,5 @@ def enh_fac(c_oh, c_co2i, k, K, kl, method ):
 
 
     else : 
-        raise ValueError("method must be 'PFO' or 'RSO'.")
+        raise ValueError("method must be 'PFO', 'RSO' or 'DC'.")
     return E

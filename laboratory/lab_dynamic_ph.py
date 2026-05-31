@@ -79,27 +79,6 @@ R     = 8.314e-5        # m3 * bar / K-mol
 
 outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
 
-# ======================================= pH =============================00
-# pH data from 23/4 inlet experiment 
-# time = ["9:06", "9:09", "9:12", "9:15", "9:19", "9:22", "9:25", "9:28",
-#         "9:31", "9:34", "9:37", "9:40", "9:43", "9:46", "9:49", "9:52",
-#         "9:55", "9:58", "10:01", "10:04", "10:07", "10:10"]
-
-# pH   = [12.64, 12.60, 12.57, 12.54, 12.42, 12.36, 12.35, 12.34,
-#         12.22, 12.25, 12.10, 11.92, 11.99, 11.92, 11.96, 11.92,
-#         11.76, 11.70, 11.62, 11.82, 11.77, 11.60 ]
-
-# # construct a dataframe
-# pH_data = pd.DataFrame({
-#     'time': time,
-#     'pH'  : pH
-# })
-
-# # add timestamp like in inlet and convert to seconds.
-# pH_data["Timestamp"] = pd.to_datetime("2026-04-23 " + pH_data["time"])
-# pH_data['t_sec'] = (pH_data['Timestamp'] - inlet['Timestamp'].iloc[0]).dt.total_seconds()
-
-
 
 # pH data from outlet experiment
 time = ["12:03", "12:06", "12:09", "12:12", "12:15", "12:18", "12:21", "12:24",
@@ -145,7 +124,7 @@ def modelrun(Q_g = 10,
     ssa   = 260     # m2/m3
     nc    = 60
 
-    cg0 = 25
+    cg0 = 28
     cl_co20   = 0.0
     cl_TOTC0  = 0.0
     clin_co2  = 0.0
@@ -220,7 +199,7 @@ results, cgin = modelrun(Q_g = 10.84,
              vres = 5,
              times = t_model,
              cgin = cgin_df,  
-             cf = 0.65,
+             cf = 1,
              Kga = 'onda',
              counter=True,
              recirc=True,
@@ -233,6 +212,43 @@ pH  = results['pH_profile']
 pH_plot     = results['pH_profile'][::-1,:]
 x = results['cell_pos']
 t = results['time']
+
+############### new model DC ################################
+results_2, cgin_2 = modelrun(Q_g = 10.84,
+             Q_l = 220.645,
+             D   = 0.19,
+             pH  = 12.88,
+             vres = 5,
+             times = t_model,
+             cgin = cgin_df,  
+             cf = 1,
+             Kga = 'onda',
+             counter=True,
+             recirc=True,
+             enh_method='DC',
+             constant_res_pH = False)
+
+
+gas_2 = results_2['gas_conc']  # final position at all times
+pH_2  = results_2['pH_profile']   
+pH_plot_2 = results_2['pH_profile'][::-1,:]
+x_2 = results_2['cell_pos']
+t_2 = results_2['time']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ########################### old model ########################################
 import mods.mod_co2_first_draft as old_mod
 def modelrun_old(Q_g = 10,
@@ -253,7 +269,7 @@ def modelrun_old(Q_g = 10,
     ssa = ssa
     nc    = 60
 
-    cg0  = 25
+    cg0  = 28
     cl0  = 0.0
     clin = 0.0
     ccr  = 0.0
@@ -311,7 +327,7 @@ def modelrun_old(Q_g = 10,
     
 results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 220.645,
                          pH = 12.88,vres=5, times = t_model,cgin=cgin_df,
-                        Kga = 'onda',cf = 0.65, recirc=True, counter = True
+                        Kga = 'onda',cf = 1, recirc=True, counter = True
                          )
 
 gas_old = results_old['gas_conc']
@@ -325,11 +341,27 @@ def RMSE(model, experiment):
 def MBE(model, experiment):
     return np.mean((model - experiment))
 
+def MAPD(model, experiment):
+    """
+    Mean absolut percentage error
+    difference relativ to experiment
+    """
+    return np.mean(np.abs((experiment - model)/experiment * 100))
+
+
 print(f'RMSE for new model {RMSE(gas[-1,:], outlet_conc_gm3[5:])}')
 print(f'MBE for the new model {MBE(gas[-1,:], outlet_conc_gm3[5:])}')
+print(f'MAPD for M1, PFO {MAPD(gas[-1,:], outlet_conc_gm3[5:])}')
+print()
+print(f'RMSE for new model with DC {RMSE(gas_2[-1,:], outlet_conc_gm3[5:])}')
+print(f'MBE for the new model with DC {MBE(gas_2[-1,:], outlet_conc_gm3[5:])}')
+print(f'MAPD for M1, DC is {MAPD(gas_2[-1,:], outlet_conc_gm3[5:])} ')
 print()
 print(f'RMSE for old model {RMSE(gas_old[-1,:], outlet_conc_gm3[5:])}')
 print(f'MBE for the old model {MBE(gas_old[-1,:], outlet_conc_gm3[5:])}')
+print(f'MAPD for M2 is {MAPD(gas_old[-1,:], outlet_conc_gm3[5:])}')
+
+print()
 
 
 mpl.rcParams.update({
@@ -365,20 +397,22 @@ plt.figure(figsize=(12, 5))
 plt.suptitle('Ql = 220.6 mL/min, Qg = 10.8 L/min, pH = 12.88')
 plt.subplot(1,2,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
-plt.plot(t, gas[-1,:], 'r-', label = "M1, cf = 0.65")
-plt.plot(t_old, gas_old[-1,:], color='grey', linestyle='--', label ='M2, cf = 0.65')
-plt.plot(outlet['t_sec'], outlet_conc_gm3, 'bo', label = "Experimental", markersize = 2 )
+plt.plot(t/60, gas[-1,:], 'r-', label = "M1, cf = 0.65, PFO")
+plt.plot(t_2/60, gas_2[-1,:], 'k-', label = "M1, cf = 0.65, DeCoursey")
+plt.plot(t_old/60, gas_old[-1,:], color='grey', linestyle='--', label ='M2, cf = 0.65')
+plt.plot(outlet['t_sec']/60, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 2 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.grid(False)
 
 plt.subplot(1,2,2)
 plt.title('(b) pH at the outlet')
-plt.plot(t, pH[0,:], 'r-', label = "M1, cf = 0.65")
-plt.plot([],[], color='grey', linestyle='--', label = 'M2, cf = 0.65')
-plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 2)
+plt.plot(t/60, pH[0,:], 'r-', label = "M1, PFO")
+plt.plot(t_2/60, pH_2[0,:], 'k-', label = "M1, DeCoursey")
+plt.plot([],[], color='grey', linestyle='--', label = 'M2')
+plt.plot(pH_data["t_sec"]/60, pH_data["pH"],'bo', label="Experimental", markersize = 2)
 plt.ylabel('pH')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.legend(loc = 'upper right', frameon = False)
 plt.grid(False)
 

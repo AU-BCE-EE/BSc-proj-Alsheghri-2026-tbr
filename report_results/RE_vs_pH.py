@@ -128,6 +128,64 @@ removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_a
 # average RE
 average_RE_12 = np.mean(removal_efficiency_experimental)
 
+
+
+
+
+# ======================== experimental data from 16/6 ======================
+data_220 = pd.read_csv(
+    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\16_04_2026_co2_measurements.csv",
+    sep=';'
+)
+
+
+data_220['Timestamp'] = pd.to_datetime(data_220['Timestamp'])
+
+# start and end for the inlet measurment
+start_220 = "2026-04-16 13:00:18"
+end_220   = "2026-04-16 13:07:18"
+
+# extract all the values in the interval
+inlet_220 = data_220[(data_220["Timestamp"] >= start_220) & (data_220["Timestamp"] <= end_220)]
+
+# mean inlet conc.
+inlet_conc_no_cal_220 = inlet_220['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc_220 = (inlet_conc_no_cal_220 - 33.475)/0.9576 # here i used the devlabs calibration curve
+
+Q_gas_bund_220 = 0.382  # L/min
+Q_air_mix_220 = 2.736     # L/min
+
+# Before the dilution
+inlet_conc_actual_220 = float((Q_gas_bund_220+Q_air_mix_220) / Q_gas_bund_220 * inlet_conc_220) # ppm
+
+
+
+# oulet concentrations
+start_out_220 = "2026-04-16 13:15:18"
+end_out_220 = "2026-04-16 14:27:18"
+outlet_220 = data_220[(data_220["Timestamp"] >= start_out_220) & (data_220["Timestamp"] <= end_out_220)]
+
+Q_gas_top_220 = 0.388  # L/min
+Q_air_mix_220 = 2.736   # L/min
+
+# actual outlet conc.
+outlet_conc_no_cal_220 = outlet_220['SCD30_CO2'] * (Q_gas_top_220 + Q_air_mix_220)/Q_gas_top_220 # ppm
+outlet_conc_220 = (outlet_conc_no_cal_220- 33.475)/0.9576  # here i used the devlabs calibration curve
+temp   = 22.0           # Celcius
+pres   = 1.0            # bar
+M_co2 = 44.009          # g/mol
+R     = 8.314e-5        # m3 * bar / K-mol
+
+outlet_conc_gm3_220 = pres/(R*(temp+273.15)) * outlet_conc_220/10**6 * M_co2
+
+
+outlet_times_220 = outlet_220["Timestamp"]
+t0_220 = outlet_times_220.iloc[0]
+outlet_t_sec_220 = (outlet_times_220 - t0_220).dt.total_seconds().to_numpy()
+
+
+removal_efficiency_experimental_220 = (inlet_conc_actual_220 - outlet_conc_220)/inlet_conc_actual_220 * 100
+average_RE_220 = np.mean(removal_efficiency_experimental_220)
 # now we want to run the model for different pH values 
 
 def modelrun(Q_g = 10,
@@ -296,7 +354,8 @@ ax1.set_xlabel('pH value')
 
 ax2.set_title(r'(b) Q$_l$ effect')
 ax2.plot(Ql_span, removal_list_Ql, c = 'black', marker = 'none', linestyle = '-', label = 'M1', fillstyle = 'none')
-ax2.plot([],[], c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none') # invisable only for legend
+ax2.plot(505.5,average_RE_13, c = 'blue', marker = '^', linestyle = 'none', label = 'Experimental', fillstyle = 'none')
+ax2.plot(220.6,average_RE_220, c = 'blue', marker = '^', linestyle = 'none', fillstyle = 'none')
 ax2.grid(False)
 # plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.75))
 # plt.ylabel('Steady-State Removal efficiency [%]')

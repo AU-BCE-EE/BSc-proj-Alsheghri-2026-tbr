@@ -338,6 +338,14 @@ def RMSE(model, experiment):
 def MBE(model, experiment):
     return np.mean((model - experiment))
 
+def MAPD(model, experiment):
+    """
+    Mean absolut percentage error
+    difference relativ to experiment
+    """
+    return np.mean(np.abs((experiment - model)/experiment * 100))
+
+
 print(f'The RMSE for the old model is {RMSE(gas_outlet_old, outlet_conc_gm3)}')
 print(f'The RMSE for the old model no cf is {RMSE(gas_outlet_old_2, outlet_conc_gm3)}')
 print()
@@ -350,6 +358,13 @@ print(f'The MBE for the old model no cf is {MBE(gas_outlet_old_2, outlet_conc_gm
 print()
 print(f'The MBE for the new model is {MBE(gas_outlet_1, outlet_conc_gm3)}')
 print(f'The MBE for the new model cf 0.65 is {MBE(gas_outlet_2, outlet_conc_gm3)}')
+print()
+print(f'The MAPD for M1 {MAPD(gas_outlet_1, outlet_conc_gm3)}')
+print(f'The MAPD for M1,cf {MAPD(gas_outlet_2, outlet_conc_gm3)}')
+print()
+print(f'The MAPD for M2 {MAPD(gas_outlet_old_2, outlet_conc_gm3)}')
+print(f'The MAPD for M2,cf {MAPD(gas_outlet_old, outlet_conc_gm3)}')
+
 
 
 
@@ -388,35 +403,35 @@ plt.figure(figsize=(12, 5))
 plt.suptitle('pH = 12.5, Ql = 220.6 mL/min, Qg = 10.8 L/min', fontsize = 14)
 plt.subplot(1,3,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
-plt.plot(t_1, gas_outlet_1, 'r-', label = "Model")
-plt.plot(t_2,gas_outlet_2, 'k-', label = "Model, cf = 0.65")
-plt.plot(t_old_2, gas_outlet_old_2, color = 'green', linestyle = '--', label = "Simple Model")
-plt.plot(t_old, gas_outlet_old, color = 'grey', linestyle = '--', label = "Simple Model, cf = 0.65")
-plt.plot(t_1, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
+plt.plot(t_1/60, gas_outlet_1, 'r-', label = "Model")
+plt.plot(t_2/60, gas_outlet_2, 'k-', label = "Model, cf = 0.65")
+plt.plot(t_old_2/60, gas_outlet_old_2, color = 'green', linestyle = '--', label = "Simple Model")
+plt.plot(t_old/60, gas_outlet_old, color = 'grey', linestyle = '--', label = "Simple Model, cf = 0.65")
+plt.plot(t_1/60, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
 # plt.ylim(15,25)
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.grid(False)
 
 
 plt.subplot(1,3,2)
 plt.title('(b) pH at the outlet')
-plt.plot(t_1, pH_outlet_1, 'r-', label = "Model")
-plt.plot(t_2, pH_outlet_2, 'k-', label = "Model, cf = 0.65")
-plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
+plt.plot(t_1/60, pH_outlet_1, 'r-', label = "Model")
+plt.plot(t_2/60, pH_outlet_2, 'k-', label = "Model, cf = 0.65")
+plt.plot(pH_data["t_sec"]/60, pH_data["pH"],'bo', label="Experimental", markersize = 3)
 plt.ylabel('pH')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.grid(False)
 
 plt.subplot(1,3,3)
 plt.title(r'(c) CO$_2$ removal efficiency')
-plt.plot(t_1, removal_eff_vs_t_1, 'r-', label = 'M1')
-plt.plot(t_2, removal_eff_vs_t_2, 'k-', label = 'M1, cf = 0.65')
-plt.plot(t_old_2, removal_eff_vs_t_old_2, color = 'green',linestyle = '--', label = "M2" )
-plt.plot(t_old, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2, cf = 0.65" )
-plt.plot(t_1,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
+plt.plot(t_1/60, removal_eff_vs_t_1, 'r-', label = 'M1')
+plt.plot(t_2/60, removal_eff_vs_t_2, 'k-', label = 'M1, cf = 0.65')
+plt.plot(t_old_2/60, removal_eff_vs_t_old_2, color = 'green',linestyle = '--', label = "M2" )
+plt.plot(t_old/60, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2, cf = 0.65" )
+plt.plot(t_1/60, removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.ylim(0, 100)
 plt.grid(False)
 plt.legend(loc = 'upper right', frameon = False)

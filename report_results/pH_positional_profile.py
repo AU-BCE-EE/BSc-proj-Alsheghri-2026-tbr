@@ -1,78 +1,18 @@
-"""
-Model validation with experimental data
-The pH in the reservoir was 
-"""
-
-
-import numpy as np
-import pandas as pd
-
-# import the data
-data = pd.read_csv(
-    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\09_04_2026_co2_measurements.csv",
-    sep=';'
-)
-
-
-data['Timestamp'] = pd.to_datetime(data['Timestamp'])
-
-# start and end for the inlet measurment
-start = "2026-04-09 10:16:41"
-end   = "2026-04-09 10:21:41"
-
-# extract all the values in the interval
-inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
-
-# mean inlet conc.
-inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
-inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576
-
-Q_gas_bund = 0.387  # L/min
-Q_air_mix = 3.0705     # L/min
-
-# Before the dilution
-inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
-
-
-
-# oulet concentrations
-start_out = "2026-04-09 10:27:41"
-end_out = "2026-04-09 12:08:41"
-outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
-
-Q_gas_top = 0.398  # L/min
-Q_air_mix = 3.0705   # L/min
-
-# actual outlet conc.
-outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
-outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576 
-temp   = 22.0           # Celcius
-pres   = 1.0            # bar
-M_co2 = 44.009          # g/mol
-R     = 8.314e-5        # m3 * bar / K-mol
-
-outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
-
-
-outlet_times = outlet["Timestamp"]
-t0 = outlet_times.iloc[0]
-outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
-
-
-
-
 import matplotlib.pyplot as plt
 import mods.mod_co2_main as md
 import importlib
 import matplotlib as mpl
 importlib.reload(md)
+import numpy as np
+
+t = np.arange(0,6060+30,30)
 
 def modelrun(Q_g = 10,
              Q_l = 350,
              D   = 0.19,
              pH  = 13.7,
              vres = 20,
-             times = outlet_t_sec,
+             times = t,
              frac_co2 = 0.05,
              cf = 1.0,
              Kga = 'onda',
@@ -158,9 +98,9 @@ def modelrun(Q_g = 10,
     return results, cgin
    
 
-frac_co2 = inlet_conc_actual/10**6
+frac_co2 = 0.025
 results, cgin = modelrun(Q_g = 10.84, Q_l = 505.4,
-                         pH = 13.01, times = outlet_t_sec,frac_co2 = frac_co2,constant_res_pH=True,
+                         pH = 13.01, times = t,frac_co2 = frac_co2,constant_res_pH=True,
                          enh_method='PFO', cf = 1, Kga = 'onda',recirc=True
                          )
 
@@ -199,7 +139,7 @@ mpl.rcParams.update({
     'axes.facecolor': 'white',
 })
 
-indices = [0,1,2,-1]
+indices = [0,1,2,3,4,-1]
 plt.figure(figsize=(7,4))
 for i in indices:
     plt.plot(x,pH_plot[:,i], label = f'{t[i]} s')
@@ -208,7 +148,7 @@ plt.grid(False)
 plt.ylabel('pH value')
 plt.xlabel('Position [m]')
 
-plt.legend(loc = 'upper right', frameon = False, bbox_to_anchor=(1, 0.95))
+plt.legend(loc = 'best', frameon = False, bbox_to_anchor=(0.3, 0.75))
 
 plt.show()
 

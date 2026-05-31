@@ -332,42 +332,52 @@ def RMSE(model, experiment):
 def MBE(model, experiment):
     return np.mean((model - experiment))
 
+def MAPE(model, experiment):
+    """
+    Mean absolut percentage error
+    difference relativ to experiment
+    """
+    return np.mean(np.abs((experiment - model)/experiment * 100))
+
 print(f'The root mean squared error for the old model is {RMSE(gas_outlet_old, outlet_conc_gm3)}')
 print(f'The root mean squared error for the new model is {RMSE(gas_outlet, outlet_conc_gm3)}')
 print()
 print(f'The MBE for the old model is {MBE(gas_outlet_old, outlet_conc_gm3)}')
 print(f'The MBE for the new model is {MBE(gas_outlet, outlet_conc_gm3)}')
+print()
+print(f'percentage deivation for M1 {MAPE(gas_outlet, outlet_conc_gm3)}')
+print(f'percentage deivation for M2 {MAPE(gas_outlet_old, outlet_conc_gm3)}')
 
 
 plt.figure(figsize=(12, 5))
 plt.suptitle('pH = 13.01, Ql = 505.5 mL/min, Qg = 10.8 L/min', fontsize = 14)
 plt.subplot(1,3,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
-plt.plot(t, gas_outlet, 'r-', label = "Model")
-plt.plot(t,gas_outlet_old, color = 'grey',linestyle = '--', label = "Simple Model")
-plt.plot(t, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
+plt.plot(t/60, gas_outlet, 'r-', label = "Model")
+plt.plot(t/60, gas_outlet_old, color = 'grey',linestyle = '--', label = "Simple Model")
+plt.plot(t/60, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
 plt.ylabel('CO$_2$ conc. [g/m$^3$]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.grid(False)
 
 
 
 plt.subplot(1,3,2)
 plt.title('(b) Liquid phase pH at the outlet')
-plt.plot(t, pH_outlet, 'r-', label = "Model")
-plt.plot(pH_data["t_sec"], pH_data["pH"],'bo', label="Experimental", markersize = 3)
+plt.plot(t/60, pH_outlet, 'r-', label = "Model")
+plt.plot(pH_data["t_sec"]/60, pH_data["pH"],'bo', label="Experimental", markersize = 3)
 plt.ylabel('pH')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 # plt.legend()
 plt.grid(False)
 
 plt.subplot(1,3,3)
 plt.title('(c) CO$_2$ removal efficiency')
-plt.plot(t, removal_eff_vs_t, 'r-', label = 'M1')
-plt.plot(t,removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2")
-plt.plot(t,removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
+plt.plot(t/60, removal_eff_vs_t, 'r-', label = 'M1')
+plt.plot(t/60, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2")
+plt.plot(t/60, removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
-plt.xlabel('Time [s]')
+plt.xlabel('Time [min]')
 plt.ylim(0, 100)
 plt.grid(False)
 plt.legend(loc = 'upper right', frameon = False)
