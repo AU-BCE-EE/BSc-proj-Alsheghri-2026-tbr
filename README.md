@@ -45,3 +45,6 @@ Then run the script from the repository root in a terminal:
 ``` bash
 python -m example
 ```
+
+## Complete model run example 
+An example of a complete model call is shown in example_model_call.py.

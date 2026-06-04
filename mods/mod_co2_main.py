@@ -317,8 +317,8 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     
     Mass transfer parameters
     ------------------------
-    Kga : float
-        Overall mass transfer coefficient (s⁻¹)
+    Kga : float, string
+        Overall mass transfer coefficient (s⁻¹), 'onda' for onda correlations
     henry : array_like
         Henry's law constant coefficients [k_H at 25°C, d(ln(kH))/d(1/T)] as in NIST Chemistry WebBook
     
