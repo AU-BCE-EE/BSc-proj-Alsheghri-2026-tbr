@@ -525,7 +525,7 @@ importlib.reload(md)
 def res_func(x):
     Q_g = 10.84
     Q_l = 220.645
-    pH = 12.904
+    pH = 13.00
     D   = 0.19
     counter = True
     recirc = False
@@ -534,7 +534,7 @@ def res_func(x):
     frac_co2 = inlet_conc_actual/10**6
     constant_res_pH=True
     enh_method='PFO'
-    Kga = x
+    Kga = 'onda'
     #========= fixed parameters ==========# 
     L     = 0.3       # m
     por_g = 0.91
@@ -592,7 +592,7 @@ def res_func(x):
         v_res=v_res,
         pres=pres,
         ssa=ssa,
-        cf=cf,
+        cf=x,
         typ='PR',
         counter=counter,
         recirc=recirc,
@@ -619,7 +619,180 @@ print(f'The estimated value is: {lspar.x[0]}')
 So now we make a new model run with the estimated parameter
 
 ```{python}
+import numpy as np
+import pandas as pd
+from scipy.optimize import least_squares
 
+# import the data
+data = pd.read_csv(
+    r"C:\tbr\BSc-proj-Alsheghri-2026-tbr\laboratory\16_04_2026_co2_measurements.csv",
+    sep=';'
+)
+
+
+data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+
+# start and end for the inlet measurment
+start = "2026-04-16 13:00:18"
+end   = "2026-04-16 13:07:18"
+
+# extract all the values in the interval
+inlet = data[(data["Timestamp"] >= start) & (data["Timestamp"] <= end)]
+
+# mean inlet conc.
+inlet_conc_no_cal = inlet['SCD30_CO2'].mean() # this is the diluted value, the real value is calculated using the dilution factor
+inlet_conc = (inlet_conc_no_cal - 33.475)/0.9576 # here i used the devlabs calibration curve
+
+Q_gas_bund = 0.382  # L/min
+Q_air_mix = 2.736    # L/min
+
+# Before the dilution
+inlet_conc_actual = float((Q_gas_bund+Q_air_mix) / Q_gas_bund * inlet_conc) # ppm
+
+
+
+# oulet concentrations
+start_out = "2026-04-16 13:15:18"
+end_out = "2026-04-16 14:27:18"
+outlet = data[(data["Timestamp"] >= start_out) & (data["Timestamp"] <= end_out)]
+
+Q_gas_top = 0.388  # L/min
+Q_air_mix = 2.736   # L/min
+
+# actual outlet conc.
+outlet_conc_no_cal = outlet['SCD30_CO2'] * (Q_gas_top + Q_air_mix)/Q_gas_top # ppm
+outlet_conc = (outlet_conc_no_cal- 33.475)/0.9576  # here i used the devlabs calibration curve
+temp   = 22.0           # Celcius
+pres   = 1.0            # bar
+M_co2 = 44.009          # g/mol
+R     = 8.314e-5        # m3 * bar / K-mol
+
+outlet_conc_gm3 = pres/(R*(temp+273.15)) * outlet_conc/10**6 * M_co2
+
+
+outlet_times = outlet["Timestamp"]
+t0 = outlet_times.iloc[0]
+outlet_t_sec = (outlet_times - t0).dt.total_seconds().to_numpy()
+
+
+
+
+# pH data 
+time = ["13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", 
+        "13:55", "14:00", "14:05", "14:10", "14:15", "14:20", "14:25"]
+pH   = [12.75, 12.75, 12.76, 12.76, 12.76, 12.76, 12.76,
+        12.76, 12.76, 12.76, 12.76, 12.76, 12.77,12.77]
+pH_data = pd.DataFrame({
+    "time": time,
+    "pH"  : pH
+})
+
+
+pH_data["Timestamp"] = pd.to_datetime(
+    "2026-04-16 " + pH_data["time"]
+)
+
+
+t0 = outlet_times.iloc[0]
+pH_data["t_sec"] = (pH_data["Timestamp"] - t0).dt.total_seconds()
+
+
+
+# experimental removal efficiency
+removal_efficiency_experimental = (inlet_conc_actual - outlet_conc)/inlet_conc_actual * 100
+
+
+
+
+import matplotlib.pyplot as plt
+import mods.mod_co2_first_draft as md
+import importlib
+import matplotlib as mpl
+importlib.reload(md)
+
+def res_func(x):
+    Q_g = 10.84
+    Q_l = 220.645
+    D   = 0.19
+    pH  = 13.0
+    vres = 20
+    cf = x
+    times = outlet_t_sec
+    frac_co2 = inlet_conc_actual/10**6
+    Kga = 'onda'
+    counter = True
+    recirc = True
+    L     = 0.3       # m
+    por_g = 0.86
+    por_l = 0.05
+    ssa   = 260       # m2/m3
+    ssa = ssa
+    nc    = 60
+
+    cg0  = 23
+    cl0  = 0.0
+    clin = 0.0
+    ccr  = 0.0
+
+    M_co2 = 44.009
+    temp = 22.0
+    TK = temp + 273.15
+    k_molar = 4.315 * 10**13 * np.exp(-6666/TK) 
+    k_mass = k_molar * (1/M_co2) * (1/1000) 
+    k2 = 'default'
+
+    henry = [3.3e-2, 2400]
+
+
+    dens_l = 997.0     # kg/m3
+    pres   = 1.0       # bar
+    pKa    = 6.35      # pKa for CO2/HCO3- (needed by old model function signature)
+
+    R = 8.314e-5       # m3 * bar / K-mol
+
+    # ================= Derived values =================
+    # cross sectional area of the reactor
+    A = (np.pi * D**2) / 4    # m2
+    # flow velocity using flow rate and area 
+    v_g = (Q_g * 1/1000 * 1/60) / A   # L/min * 1m3/1000L * 1min/60s = m3/s
+    v_l = (Q_l * 1/10**6 * 1/60) / A  # mL/min * 1m3/10^6mL * 1min/60s = m3/s 
+
+    v_res = vres / 1000 / A   # Convert reservoir volume to m3 per m2 cross section
+
+# Inlet gas concentration
+    cgin = pres / ((temp + 273.15) * R) * frac_co2 * M_co2  # g/m3  
+    
+    results = md.tfmod(
+        L, por_g, por_l,cf, v_g, v_l, nc,
+        cg0, cl0,
+        cgin, clin,
+        k_mass, Kga, henry, pKa, pH,
+        temp, dens_l,
+        times,
+        kg='onda',
+        kl='onda',
+        ae='onda',
+        v_res=v_res,
+        k2=k2,
+        ccr=ccr,
+        pres=pres,
+        ssa=ssa,
+        typ='PR',
+        counter=counter,
+        recirc=recirc
+    )
+
+    gas        = results['gas_conc']
+    gas_outlet = gas[-1,:]
+
+    res = gas_outlet - outlet_conc_gm3
+    return res
+
+lspar = least_squares(
+    res_func, 
+    x0 = [0])
+    
+print(f'The estimated value is: {lspar.x[0]}')
+# 
 ```
-
 

@@ -60,6 +60,7 @@ def rates(t, n,
     nc = (len(n) - 2) // 3   # len(n) = nc * 3 + 2 
 
     # Separate gas, liquid and reservoir state variables
+    # mol/m^2
     ncg     = n[0 : nc]                     # CO2 in the gas phase
     n_co2   = n[nc : (2 * nc)]              # CO2 in the liquid phase    
     n_TOTC  = n[(2 * nc) : (3 * nc)]        # TOTC in the liquid phase
@@ -183,8 +184,8 @@ def rates(t, n,
             cr_oh         = res_reservoir['c_oh'] 
 
             # reactions in the reservoir
-            r1_res = k1 * cr_co2 - k2 * cr_h2co3
-            r2_res = k3 * cr_co2 * cr_oh - k4 * cr_hco3
+            r1_res = k1 * cr_co2 - k2 * cr_h2co3        # mol/m3-s
+            r2_res = k3 * cr_co2 * cr_oh - k4 * cr_hco3 # mol/m3-s
 
             # co2 in the reservoir
             clin_co2 = ncr_co2 / v_res   # the dirichlet boundary condition becomes the concentration in the reservoir            
@@ -196,6 +197,7 @@ def rates(t, n,
 
             # Derivatives
             # Accumelation = in - out + reaction = CO2(reactor outlet) * vl - CO2(reservoir) * vl + reaction
+            # mol/m2-s = mol/m3 * m/s - mol/m3-s * m3/m2
             dmcr_co2 = (c_co2[oi] - cr_co2) * abs(v_l) - rxnr_co2 * v_res
             
             if constant_res_pH:
@@ -218,18 +220,18 @@ def rates(t, n,
     g2l     = np.zeros(nc)
 
     # mass transfer from gas into liquid phase
-    g2l = Kga * vol_tot * (ccg - c_co2 * Kaw)    # mol/s
+    g2l = Kga * vol_tot * (ccg - c_co2 * Kaw)    # mol/m2-s
 
     # gas phase derivative
     cvec_gas  = np.insert(ccg, 0, cgin)          # insert the boundary condition on the first index
     advec_gas = - v_g * np.diff(cvec_gas)        # the advection term 
-    dmg       = advec_gas - g2l                  # rate of change mol/s
+    dmg       = advec_gas - g2l                  # rate of change mol/m2-s
 
     # CO2 in the liquid phase 
     v_l_eff = v_l
 
-    r1 = k1 * c_co2 - k2 * c_h2co3
-    r2 = k3 * c_co2 * c_oh - k4 * c_hco3
+    r1 = k1 * c_co2 - k2 * c_h2co3        # mol/m3-s
+    r2 = k3 * c_co2 * c_oh - k4 * c_hco3  # mol/m3-s
     rxn_co2 = r1 + r2
 
     if not counter:
@@ -239,7 +241,7 @@ def rates(t, n,
         cvec_co2 = np.insert(c_co2, nc, clin_co2)
     
     advec_co2 = - v_l_eff * np.diff(cvec_co2)        # advection term
-    dm_co2    = advec_co2 + g2l - rxn_co2 * vol_liq  # rate of change mol/s
+    dm_co2    = advec_co2 + g2l - rxn_co2 * vol_liq  # rate of change mol/m2-s
 
     # TOTC
     if not counter:
@@ -249,7 +251,7 @@ def rates(t, n,
         cvec_TOTC = np.insert(c_TOTC, nc, clin_TOTC)
     
     advec_TOTC = - v_l_eff * np.diff(cvec_TOTC)     # advection term
-    dm_TOTC    = advec_TOTC + rxn_co2 * vol_liq     # rate of change mol/s
+    dm_TOTC    = advec_TOTC + rxn_co2 * vol_liq     # rate of change mol/m2-s
 
     # combine gas liquid and reservoir for the ode solve to solve
 
@@ -487,7 +489,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     cr = np.array([
     gpm3_to_molpm3(cr_co20,  M_co2),
     cr_TOTC0,
-    ]) * v_res  # mol
+    ]) * v_res  # mol/m2
 
     # Uniform initial concentrations
     ccg    = np.full((nc), cg0)
@@ -495,7 +497,7 @@ def tfmod(L, por_g, por_l, v_g, v_l, nc, cg0, cl_co20, cl_TOTC0, cgin, ex_oh,
     c_TOTC = np.full((nc), cl_TOTC0) 
 
     # convert concentration to moles
-    ncg      = ccg    * vol_gas            # mol/m3 * m3 = mol
+    ncg      = ccg    * vol_gas            # mol/m3 * m3/2 = mol/m2
     ncl_co2  = c_co2  * vol_liq
     ncl_TOTC = c_TOTC * vol_liq
 

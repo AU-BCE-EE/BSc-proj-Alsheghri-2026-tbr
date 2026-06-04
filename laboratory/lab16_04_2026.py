@@ -295,7 +295,7 @@ def modelrun_old(Q_g = 10,
 # ============================ old cf =========================
 results_old, cgin_old = modelrun_old(Q_g = 10.84, Q_l = 220.645,
                          pH = 13, times = outlet_t_sec,frac_co2 = frac_co2,
-                        Kga = 'onda',cf = 0.65, recirc=False, counter = True
+                        Kga = 'onda',cf = 0.86, recirc=False, counter = True
                          )
 
 gas_old = results_old['gas_conc']
@@ -391,7 +391,7 @@ plt.subplot(1,3,1)
 plt.title(r'(a) Gas CO$_2$ concentration at the outlet')
 plt.plot(t_1/60, gas_outlet_1, 'r-', label = "M1")
 plt.plot(t_2/60, gas_outlet_2, 'k-', label = "M1, cf = 0.65")
-plt.plot(t_old/60, gas_outlet_old, color = 'grey', linestyle = '--', label = "M2, cf = 0.65")
+plt.plot(t_old/60, gas_outlet_old, color = 'grey', linestyle = '--', label = "M2, cf = 0.86")
 plt.plot(t_old_2/60, gas_outlet_old_2, color = 'green', linestyle = '--', label = "M2")
 plt.plot(t_1/60, outlet_conc_gm3, 'bo', label = "Experimental", markersize = 3 )
 plt.ylabel(r'CO$_2$ conc. [g/m$^3$]')
@@ -416,7 +416,7 @@ plt.title(r'(c) CO$_2$ removal efficiency')
 plt.plot(t_1/60, removal_eff_vs_t_1, 'r-', label = 'M1')
 plt.plot(t_2/60, removal_eff_vs_t_2, 'k-', label = 'M1, cf = 0.65')
 plt.plot(t_old_2/60, removal_eff_vs_t_old_2, color = 'green',linestyle = '--', label = "M2" )
-plt.plot(t_old/60, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2, cf = 0.65" )
+plt.plot(t_old/60, removal_eff_vs_t_old, color = 'grey',linestyle = '--', label = "M2, cf = 0.86" )
 plt.plot(t_1/60, removal_efficiency_experimental,'bo', label = 'Experimental', markersize = 2)
 plt.ylabel('Removal efficiency [%]')
 plt.xlabel('Time [min]')
