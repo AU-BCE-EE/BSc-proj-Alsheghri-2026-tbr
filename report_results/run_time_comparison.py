@@ -229,10 +229,10 @@ mpl.rcParams.update({
 }) 
 
 plt.figure(figsize=(6,4))
-plt.plot(cells, t_old, '-', color='grey', label='M2')
-plt.plot(cells, t_new, '-', color='red', label='M1')
+plt.semilogy(cells, t_old, '-', color='grey', label='M2')
+plt.semilogy(cells, t_new, '-', color='red', label='M1')
 plt.xlabel('Number of cells')
-plt.ylabel('Runtime [s]')
+plt.ylabel('Runtime [s] (log scale)')
 plt.title('Runtime comparison')
 plt.grid(False)
 plt.legend(frameon = False)
